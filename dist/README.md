@@ -12,14 +12,13 @@ rakip siteleri bulup inceler, hangi bölümlerin gerektiğine karar verir, içer
 
 | | |
 |---|---|
-| **İndir** | **[WebAgent.exe](BURAYA-INDIRME-BAGLANTISI)** ⟵ *yayına alındığında bu bağlantı güncellenecek* |
+| **İndir** | **[⬇ WebAgent.exe](https://github.com/HalilALPAK/webagent-site-uretici/releases/latest/download/WebAgent.exe)** |
 | Sürüm | 1.0 · 21.09.2026 |
 | Boyut | 38 MB (tek dosya, kurulum gerektirmez) |
 | Sistem | Windows 10 / 11, 64-bit |
 | SHA-256 | `dd66e61f4f49a4f9f70fa65ec0d95c33d33664526662aa6c296cbc7931f0913c` |
 
-Dosya şu an yalnızca bu bilgisayarda:
-`C:\Users\User\Desktop\web_agent\dist\WebAgent.exe`
+Tüm sürümler ve değişiklik notları: [github.com/HalilALPAK/webagent-site-uretici/releases](https://github.com/HalilALPAK/webagent-site-uretici/releases)
 
 > **İndirdiğiniz dosyayı doğrulamak için** PowerShell'de:
 > `Get-FileHash .\WebAgent.exe -Algorithm SHA256`
@@ -156,5 +155,5 @@ okuyun. Bir sitenin kendi testlerini `php artisan test` ile de çalıştırabili
 ## Geliştiriciler için
 
 Kaynak kod, ajanların nasıl çalıştığı, tasarım rehberi ve testler için projenin ana klasöründeki
-[README.md](../README.md) ve [DESIGN.md](../DESIGN.md) dosyalarına bakın.
+[README.md](https://github.com/HalilALPAK/webagent-site-uretici/blob/master/README.md) ve [DESIGN.md](https://github.com/HalilALPAK/webagent-site-uretici/blob/master/DESIGN.md) dosyalarına bakın.
 Exe'yi yeniden üretmek: `python build_exe.py`

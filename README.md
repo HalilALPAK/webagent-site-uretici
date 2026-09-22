@@ -1,5 +1,9 @@
 # Web Agent — Rakip Analizinden Çok Ajanlı Site Üretimi
 
+[![İndir](https://img.shields.io/badge/Windows%20i%C3%A7in%20indir-WebAgent.exe%20%C2%B7%2038%20MB-4f46e5?style=for-the-badge&logo=windows)](https://github.com/HalilALPAK/webagent-site-uretici/releases/latest/download/WebAgent.exe)
+
+**[⬇ WebAgent.exe indir](https://github.com/HalilALPAK/webagent-site-uretici/releases/latest/download/WebAgent.exe)** · [kullanım kılavuzu](dist/README.md) · [tüm sürümler](https://github.com/HalilALPAK/webagent-site-uretici/releases)
+
 Bir **sektör** girersiniz. Ajan topluluğu rakip siteleri bulur, tarar ve modüllerini çıkarır. Sonra
 bunlardan bir modül stratejisi kurar ve size çalışır durumda bir **PHP / Laravel 13** projesi üretir:
 ziyaretçi sitesi (Blade), **Filament** admin paneli, JSON API ve SQLite veritabanı.
