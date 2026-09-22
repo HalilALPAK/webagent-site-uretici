@@ -1,0 +1,232 @@
+{% set a = job.artifacts %}
+{% set live = job.status in ('queued', 'running', 'building', 'deploying') %}
+{% set active_agents = job.events | map(attribute='agent') | list %}
+<div data-live="{{ 1 if live else 0 }}" data-reload="{{ 1 if job.status in ('awaiting_images', 'awaiting_review') else 0 }}"></div>
+
+<div class="head">
+  <div>
+    <a href="/" class="muted small">← İşler</a>
+    <h1>{{ job.request.brand_name or job.request.sector }} <small class="muted">· {{ job.request.sector }} · {{ job.request.location }}</small></h1>
+  </div>
+  <div class="status">
+    <span class="pill {{ job.status }}">{{ STATUS_TR.get(job.status, job.status) }}</span>
+    <span>{{ job.stage }}</span>
+    {% if live %}<span class="spinner"></span>{% endif %}
+  </div>
+</div>
+
+<ol class="pipeline">
+  {% for name, desc in agents %}
+    {% set state = 'done' if name in active_agents else '' %}
+    {% if live and job.events and job.events[-1].agent == name %}{% set state = 'active' %}{% endif %}
+    <li class="{{ state }}" title="{{ desc }}">{{ name | replace(' Ajanı', '') }}</li>
+  {% endfor %}
+</ol>
+
+{% if job.error %}<div class="alert err"><b>Hata:</b> {{ job.error }}</div>{% endif %}
+
+{% if job.status == 'done' %}
+<section class="card result">
+  <div>
+    <h2>✓ {{ a.spec.site_name }} hazır</h2>
+    <p class="muted">{{ a.spec.tagline }}</p>
+    {% if a.admin_credentials %}
+    <p class="small">Yönetim paneli girişi: <code>{{ a.admin_credentials.user }}</code> / <code>{{ a.admin_credentials.password }}</code></p>
+    {% endif %}
+    <p class="small muted">Veri: {{ 'MySQL · ' ~ job.request.db.host ~ '/' ~ job.request.db.database if job.request.db.type == 'mysql' else 'yerel SQLite' }}</p>
+  </div>
+  <div class="result-actions">
+    {% if site_url %}
+      <form method="post" action="/jobs/{{ job.id }}/open"><input type="hidden" name="what" value="site"><button class="btn">Siteyi aç ↗</button></form>
+      <form method="post" action="/jobs/{{ job.id }}/open"><input type="hidden" name="what" value="admin"><button class="btn ghost">Yönetim paneli ↗</button></form>
+      <form method="post" action="/jobs/{{ job.id }}/stop"><button class="btn danger">Durdur</button></form>
+      <p class="small muted full">Çalışıyor: <code>{{ site_url }}</code></p>
+    {% else %}
+      <form method="post" action="/jobs/{{ job.id }}/launch"><button class="btn big">▶ Siteyi başlat</button></form>
+    {% endif %}
+    <form method="post" action="/jobs/{{ job.id }}/open"><input type="hidden" name="what" value="folder"><button class="btn ghost">📁 Klasörü aç</button></form>
+  </div>
+</section>
+{% set rev = a.revision %}
+<section class="card">
+  <details class="deploy" open>
+    <summary><b>✏️ Siteyi düzenle</b> <small class="muted">— ne değişsin, kendi cümlenizle yazın</small></summary>
+    {% if rev and rev.summary and not rev.pending %}
+      <div class="alert ok-box">
+        <b>Son değişiklik:</b> {{ rev.summary }}
+        {% if rev.diff %}<br><span class="small">
+          {% if rev.diff.added_entities %}Yeni bölüm: {{ rev.diff.added_entities | join(', ') }}. {% endif %}
+          {% if rev.diff.added_fields %}Yeni alan: {% for t, fs in rev.diff.added_fields.items() %}{{ t }} ({{ fs | length }}){% if not loop.last %}, {% endif %}{% endfor %}. {% endif %}
+          {% if rev.diff.removed_entities or rev.diff.removed_fields %}Kaldırılanlar sitede görünmüyor, verileri duruyor. {% endif %}
+          {% if rev.diff.theme_changed %}Tasarım güncellendi.{% endif %}
+        </span>{% endif %}
+      </div>
+    {% endif %}
+    <form method="post" action="/jobs/{{ job.id }}/revise" class="form">
+      <label class="sr-only" for="instruction">Değişiklik isteği</label>
+      <textarea id="instruction" name="instruction" rows="3" required
+        placeholder="ör. şubelere açılış saati ekle · ana sayfada yorumları en üste al · rengi daha koyu yap · SSS bölümünü kaldır · kampanyalar diye yeni bölüm aç"></textarea>
+      <p class="muted small">Eklediğiniz içerikler ve yüklediğiniz görseller korunur; kaldırılan bölümlerin
+        verisi silinmez, yalnızca sitede görünmez olur. Her değişiklikten önce yedek alınır.</p>
+      <div class="wizard-nav"><button class="btn">Değişikliği uygula →</button></div>
+    </form>
+  </details>
+</section>
+
+{% set d = a.deploy %}
+{% set ds = a.deploy_settings or {} %}
+<section class="card">
+  <details class="deploy" {{ 'open' if not d and job.status != 'deploying' }}>
+    <summary><b>🌐 Siteyi kendi sunucunuza yükleyin</b>
+      {% if d %}<span class="ok-badge">yayında</span>{% endif %}</summary>
+
+    {% if d %}
+      <div class="alert ok-box">
+        <b>Site yayında:</b> <a href="{{ d.url }}" target="_blank" rel="noopener">{{ d.url }}</a> ·
+        <a href="{{ d.admin_url }}" target="_blank" rel="noopener">yönetim paneli</a><br>
+        <span class="small muted">{{ d.host }} · veri: {{ d.database }} · {{ d.checks | join(' · ') }}</span>
+      </div>
+    {% endif %}
+
+    <p class="muted small">Dosyalar tek bir paket hâlinde sunucunuza yüklenir, orada açılır ve site kurulur.
+      Sunucunuzda <b>PHP 8.3+</b> ve <b>zip</b> eklentisi gerekir. Şifreler kaydedilmez.</p>
+
+    <form method="post" action="/jobs/{{ job.id }}/deploy" class="form" id="deploy-form">
+      <div class="row">
+        <label>Bağlantı türü
+          <select name="method">
+            <option value="ftp" {{ 'selected' if ds.method == 'ftp' }}>FTP</option>
+            <option value="ftps" {{ 'selected' if ds.method == 'ftps' }}>FTPS (şifreli FTP)</option>
+            <option value="sftp" {{ 'selected' if ds.method == 'sftp' }}>SFTP (SSH)</option>
+          </select>
+        </label>
+        <label>Sunucu <span class="req">*</span><input name="host" required placeholder="ftp.firmaniz.com" value="{{ ds.host or '' }}"></label>
+        <label>Port <small class="muted">(boş: otomatik)</small><input type="number" name="port" value="{{ ds.port or '' }}"></label>
+      </div>
+      <div class="row">
+        <label>Kullanıcı adı <span class="req">*</span><input name="username" required autocomplete="off" value="{{ ds.username or '' }}"></label>
+        <label>Şifre <span class="req">*</span><input type="password" name="password" required autocomplete="off"></label>
+        <label>Web klasörü<input name="remote_dir" value="{{ ds.remote_dir or '/public_html' }}"></label>
+      </div>
+      <label><span>Site adresi <span class="req">*</span> <small class="muted">(alan adınız, ör. https://firmaniz.com)</small></span>
+        <input name="site_url" required placeholder="https://firmaniz.com" value="{{ ds.site_url or '' }}">
+      </label>
+
+      <label class="choice">
+        <input type="radio" name="db_type" value="sqlite" {{ 'checked' if ds.db_type != 'mysql' }}>
+        <span><b>Veriyi dosya olarak yükle (SQLite)</b><br>
+          <small class="muted">Buradaki içerik olduğu gibi sunucuya taşınır. Veritabanı kurmaya gerek yok.</small></span>
+      </label>
+      <label class="choice">
+        <input type="radio" name="db_type" value="mysql" {{ 'checked' if ds.db_type == 'mysql' }}>
+        <span><b>Sunucudaki MySQL veritabanını kullan</b><br>
+          <small class="muted">Tablolar sunucuda oluşturulur ve içerik oraya yüklenir.</small></span>
+      </label>
+      <div class="sub" data-show-when="db_type=mysql">
+        <div class="row">
+          <label>Veritabanı sunucusu<input name="db_host" value="{{ ds.db_host or 'localhost' }}"></label>
+          <label>Port<input type="number" name="db_port" value="{{ ds.db_port or 3306 }}"></label>
+          <label>Veritabanı adı<input name="db_database" value="{{ ds.db_database or '' }}"></label>
+        </div>
+        <div class="row">
+          <label>Kullanıcı<input name="db_username" autocomplete="off" value="{{ ds.db_username or '' }}"></label>
+          <label>Şifre<input type="password" name="db_password" autocomplete="off"></label>
+        </div>
+        <p class="muted small">Bu bilgiler sunucunun kendi içinden bağlanmak için kullanılır; genelde sunucu adı <code>localhost</code> olur.</p>
+      </div>
+
+      <div class="wizard-nav">
+        <button class="btn big" {{ 'disabled' if job.status == 'deploying' }}>
+          {% if job.status == 'deploying' %}Yükleniyor…{% elif d %}Yeniden yükle{% else %}Sunucuya yükle →{% endif %}
+        </button>
+      </div>
+    </form>
+  </details>
+</section>
+
+{% if a.qa %}
+<details class="card" {{ 'open' if not a.qa.passed }}>
+  <summary><b>QA:</b> {{ a.qa.checks | length }} kontrol geçti, {{ a.qa.errors | length }} hata</summary>
+  <ul class="small">{% for e in a.qa.errors %}<li class="bad">{{ e }}</li>{% endfor %}{% for c in a.qa.checks %}<li>{{ c }}</li>{% endfor %}</ul>
+</details>
+{% endif %}
+{% endif %}
+
+<div class="two">
+  <div>
+    {% if a.competitors %}
+    <section class="card">
+      <h2>Rakipler</h2>
+      <table>
+        {% for c in a.competitors %}
+        {% set crawl = (a.crawls or []) | selectattr('url', 'equalto', c.url) | first %}
+        <tr>
+          <td><b>{{ c.name }}</b><br><a class="small" href="{{ c.url }}" target="_blank" rel="noopener">{{ c.url }}</a></td>
+          <td class="small muted">{{ c.why }}
+            {% if crawl %}<br>{% if crawl.ok %}<span class="tagx">{{ crawl.pages | length }} sayfa</span>{% for t in crawl.tech %}<span class="tagx">{{ t }}</span>{% endfor %}
+            {% else %}<span class="bad">taranamadı</span>{% endif %}{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </section>
+    {% endif %}
+
+    {% if a.feature_matrix %}
+    {% set rec = (a.strategy.recommended_modules if a.strategy else []) | map(attribute='key') | list %}
+    <section class="card">
+      <h2>Özellik matrisi</h2>
+      <p class="muted small">Hangi modül kaç rakipte var? Vurgulananlar yeni siteye seçildi.</p>
+      <table class="matrix">
+        {% for r in a.feature_matrix %}
+        <tr class="{{ 'picked' if r.key in rec }}">
+          <td><b>{{ r.title }}</b><br><small class="muted">{{ r.key }}</small></td>
+          <td class="bar-cell"><div class="bar"><span style="width: {{ r.coverage }}%"></span></div></td>
+          <td class="small">{{ r.count }}/{{ (a.analyses or []) | length }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </section>
+    {% endif %}
+
+    {% if a.strategy %}
+    <section class="card">
+      <h2>Strateji</h2>
+      <p>{{ a.strategy.positioning }}</p>
+      <p class="small muted"><b>Hedef kitle:</b> {{ a.strategy.target_audience }}</p>
+      <ul class="mods">
+        {% for m in a.strategy.recommended_modules %}
+        <li><span class="prio {{ m.priority }}">{{ m.priority }}</span> <b>{{ m.title }}</b> <span class="muted small">— {{ m.reason }}</span></li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+
+    {% if a.spec %}
+    <section class="card">
+      <h2>Site mimarisi</h2>
+      <div class="swatches">
+        <span style="background: {{ a.spec.branding.primary_color }}"></span>
+        <span style="background: {{ a.spec.branding.accent_color }}"></span>
+        <small class="muted">{{ a.spec.branding.font_family }} · {{ a.spec.branding.tone }}</small>
+      </div>
+      {% for e in a.spec.entities %}
+      <details>
+        <summary><b>{{ e.label_plural }}</b> <code>/{{ e.name }}</code> {% if not e.public %}<small class="muted">(sadece admin)</small>{% endif %} — {{ e.fields | length }} alan</summary>
+        <table class="small">{% for f in e.fields %}<tr><td><code>{{ f.name }}</code></td><td>{{ f.label }}</td><td class="muted">{{ f.type }}{% if f.relation %} → {{ f.relation }}{% endif %}{% if f.options %} ({{ f.options | join(', ') }}){% endif %}</td></tr>{% endfor %}</table>
+      </details>
+      {% endfor %}
+      <p class="small muted">Sayfalar: {% for p in a.spec.pages %}<code>/p/{{ p.slug }}</code> {% endfor %}</p>
+    </section>
+    {% endif %}
+  </div>
+
+  <section class="card log">
+    <h2>Ajan akışı</h2>
+    <ul>
+      {% for e in job.events | reverse %}
+      <li class="{{ e.level }}"><time>{{ e.ts | ts }}</time><b>{{ e.agent }}</b><span>{{ e.message }}</span></li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>

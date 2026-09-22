@@ -1,0 +1,47 @@
+{% extends "admin/base.html" %}
+{% set editing = row.get('id') %}
+{% block title %}{{ entity.label }} {{ 'düzenle' if editing else 'ekle' }}{% endblock %}
+{% block content %}
+<div class="page-top">
+  <h1>{{ 'Düzenle' if editing else 'Yeni' }}: {{ entity.label }}</h1>
+  <div class="actions">
+    {% if editing and entity.public %}<a href="/{{ entity.name }}/{{ row.id }}" target="_blank">Sitede gör ↗</a>{% endif %}
+    <a href="/admin/e/{{ entity.name }}">← Listeye dön</a>
+  </div>
+</div>
+<form method="post" class="panel form">
+  <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+  {% if errors %}<div class="flash err">Lütfen işaretli alanları düzeltin.</div>{% endif %}
+  {% for f in entity.fields %}
+    {% set v = row.get(f.name) %}
+    <div class="field {{ 'has-err' if errors.get(f.name) }} {{ 'wide' if f.type in ('text', 'richtext') }}">
+      {% if f.type == 'bool' %}
+        <label class="check"><input type="checkbox" name="{{ f.name }}" value="1" {{ 'checked' if v and v not in ('0', 0) }}> {{ f.label }}</label>
+      {% else %}
+        <label for="f_{{ f.name }}">{{ f.label }}{% if f.required %} <span class="req">*</span>{% endif %}</label>
+        {% if f.type in ('text', 'richtext') %}
+          <textarea id="f_{{ f.name }}" name="{{ f.name }}" rows="{{ 10 if f.type == 'richtext' else 4 }}">{{ v if v is not none else '' }}</textarea>
+          {% if f.type == 'richtext' %}<small>Markdown desteklenir: ## başlık, - liste, **kalın**, [link](https://…)</small>{% endif %}
+        {% elif f.type == 'select' %}
+          <select id="f_{{ f.name }}" name="{{ f.name }}">
+            <option value="">—</option>
+            {% for o in f.options %}<option {{ 'selected' if v == o }}>{{ o }}</option>{% endfor %}
+          </select>
+        {% elif f.type == 'relation' %}
+          <select id="f_{{ f.name }}" name="{{ f.name }}">
+            <option value="">—</option>
+            {% for oid, otitle in options.get(f.name, {}).items() %}<option value="{{ oid }}" {{ 'selected' if v|string == oid|string }}>{{ otitle }}</option>{% endfor %}
+          </select>
+        {% else %}
+          {% set itype = {'int': 'number', 'float': 'number', 'price': 'number', 'date': 'date', 'email': 'email', 'url': 'url', 'image': 'url', 'phone': 'tel'}.get(f.type, 'text') %}
+          <input id="f_{{ f.name }}" name="{{ f.name }}" type="{{ itype }}" value="{{ v if v is not none else '' }}"
+                 {% if f.type in ('float', 'price') %}step="0.01"{% endif %} {% if f.required %}required{% endif %}>
+          {% if f.type == 'image' and v %}<img class="preview" src="{{ v }}" alt="">{% endif %}
+        {% endif %}
+      {% endif %}
+      {% if errors.get(f.name) %}<small class="err">{{ errors[f.name] }}</small>{% endif %}
+    </div>
+  {% endfor %}
+  <div class="form-actions"><button class="btn">Kaydet</button></div>
+</form>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}İletişim — {{ site.site_name }}{% endblock %}
+{% block content %}
+<section class="page-head"><div class="container"><h1>İletişim</h1><p class="lead">Size en kısa sürede dönüş yapalım.</p></div></section>
+<section class="section"><div class="container contact-grid">
+  <div class="card pad">
+    {% if sent %}<p class="alert ok">Mesajınız alındı, teşekkür ederiz!</p>{% endif %}
+    <form method="post" class="form">
+      <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+      <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <label>Ad Soyad<input name="name" value="{{ values.name or '' }}" required></label>
+      {% if errors.name %}<small class="err">{{ errors.name }}</small>{% endif %}
+      <div class="row2">
+        <label>E-posta<input type="email" name="email" value="{{ values.email or '' }}" required></label>
+        <label>Telefon<input name="phone" value="{{ values.phone or '' }}"></label>
+      </div>
+      {% if errors.email %}<small class="err">{{ errors.email }}</small>{% endif %}
+      <label>Konu<input name="subject" value="{{ values.subject or request.query_params.get('subject', '') }}"></label>
+      <label>Mesaj<textarea name="body" rows="6" required>{{ values.body or '' }}</textarea></label>
+      {% if errors.body %}<small class="err">{{ errors.body }}</small>{% endif %}
+      <button class="btn btn-lg">Gönder</button>
+    </form>
+  </div>
+  <aside class="contact-info">
+    <h3>{{ site.site_name }}</h3>
+    <p><strong>Telefon</strong><br>{{ site.contact_phone }}</p>
+    <p><strong>E-posta</strong><br>{{ site.contact_email }}</p>
+    <p><strong>Adres</strong><br>{{ site.address }}</p>
+  </aside>
+</div></section>
+{% endblock %}

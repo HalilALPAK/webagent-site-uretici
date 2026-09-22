@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}{{ page.title }} — {{ site.site_name }}{% endblock %}
+{% block content %}
+<section class="page-head"><div class="container"><h1>{{ page.title }}</h1></div></section>
+<section class="section"><div class="container narrow prose">{{ page.body_markdown | md }}</div></section>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "admin/base.html" %}
+{% block title %}Genel Bakış{% endblock %}
+{% block content %}
+<div class="page-top"><h1>Genel Bakış</h1></div>
+<div class="stats">
+  {% for s in stats %}
+  <a class="stat" href="/admin/e/{{ s.entity.name }}"><span>{{ s.entity.label_plural }}</span><b>{{ s.count }}</b></a>
+  {% endfor %}
+  <a class="stat" href="/admin/messages"><span>Okunmamış mesaj</span><b>{{ unread }}</b></a>
+  <a class="stat" href="/admin/subscribers"><span>Bülten abonesi</span><b>{{ subscribers }}</b></a>
+</div>
+
+<div class="panel">
+  <div class="panel-head"><h2>Son mesajlar</h2><a href="/admin/messages">Tümü →</a></div>
+  {% if messages %}
+  <table>
+    <thead><tr><th>Gönderen</th><th>Konu</th><th>Tarih</th></tr></thead>
+    <tbody>
+    {% for m in messages %}
+      <tr class="{{ 'unread' if not m.is_read }}"><td>{{ m.name }}<br><small>{{ m.email }}</small></td><td>{{ m.subject or (m.body | excerpt) }}</td><td><small>{{ m.created_at }}</small></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="empty">Henüz mesaj yok.</p>{% endif %}
+</div>
+
+<div class="panel">
+  <div class="panel-head"><h2>Site modülleri</h2></div>
+  <div class="chips">
+    {% for m in site.modules %}<span class="chip {{ m.priority }}" title="{{ m.reason }}">{{ m.title }}</span>{% endfor %}
+  </div>
+</div>
+{% endblock %}

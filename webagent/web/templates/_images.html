@@ -1,0 +1,106 @@
+{% set images = job.artifacts.images %}
+{% set choices = images.choices %}
+<div class="head">
+  <div>
+    <a href="/" class="muted small">← İşler</a>
+    <h1>Görseller <small class="muted">· {{ job.request.brand_name or job.request.sector }}</small></h1>
+    {% if job.artifacts.revision and job.artifacts.revision.pending %}
+      <p class="alert warn small">Bu bir <b>revizyon</b>: yalnızca yeni eklenen bölümlerin görselleri soruluyor,
+        mevcut görselleriniz korunuyor.</p>
+    {% endif %}
+    <p class="muted">İçerik hazır. Her grup için <b>hazır görsel</b> kullanabilir, <b>kendi görsellerinizi</b> yükleyebilir ya da boş bırakabilirsiniz.
+      Grup düğmeleri hepsine birden uygulanır; her görselin altındaki düğmeler yalnızca o görseli değiştirir.</p>
+  </div>
+</div>
+
+{% for g in images.groups %}
+  {% set pool = {} %}{% for c in g.pool %}{% set _ = pool.update({c.id: c}) %}{% endfor %}
+  {% set ns = namespace(stock=0, up=0) %}
+  {% for s in g.slots %}{% set t = choices.get(s.id, {}).get('type') %}
+    {% if t == 'stock' %}{% set ns.stock = ns.stock + 1 %}{% elif t == 'upload' %}{% set ns.up = ns.up + 1 %}{% endif %}
+  {% endfor %}
+  {% set n_stock, n_up = ns.stock, ns.up %}
+  <section class="card img-group" id="g-{{ g.id }}">
+    <div class="img-group-head">
+      <div>
+        <h2>{{ g.label }}</h2>
+        <p class="muted small">{{ g.hint }} · {{ n_stock }} hazır, {{ n_up }} yüklenen, {{ g.slots | length - n_stock - n_up }} boş</p>
+      </div>
+      <div class="group-actions">
+        <form method="post" action="/jobs/{{ job.id }}/group/{{ g.id }}/stock">
+          <button class="btn ghost" {{ 'disabled' if not g.pool }}>✦ Hepsine hazır görsel</button>
+        </form>
+        <form method="post" action="/jobs/{{ job.id }}/group/{{ g.id }}/upload" enctype="multipart/form-data" class="upload-form">
+          <label class="btn">⬆ {{ 'Görsel yükle' if g.slots | length == 1 else 'Toplu yükle (' ~ (g.slots | length) ~ ')' }}
+            <input type="file" name="files" accept="image/*" {{ 'multiple' if g.slots | length > 1 }} onchange="this.form.requestSubmit()">
+          </label>
+        </form>
+        <form method="post" action="/jobs/{{ job.id }}/group/{{ g.id }}/clear">
+          <button class="btn ghost danger">Hepsini boşalt</button>
+        </form>
+      </div>
+    </div>
+    {% if g.slots | length > 1 %}<p class="muted small">Toplu yüklemede seçtiğiniz dosyalar aşağıdaki sıraya göre yerleşir.</p>{% endif %}
+    {% if not g.pool %}<p class="alert warn small">Bu grup için uygun hazır görsel bulunamadı; kendi görsellerinizi yükleyin ya da boş bırakın (sitede şık bir renkli kart görünür).</p>{% endif %}
+
+    <div class="slots">
+      {% for s in g.slots %}
+        {% set c = choices.get(s.id, {'type': 'none'}) %}
+        <figure class="slot slot-{{ c.type }}">
+          <div class="slot-img">
+            {% if c.type == 'stock' and pool.get(c.cid) %}
+              <img src="{{ pool[c.cid].thumb }}" alt="" loading="lazy" referrerpolicy="no-referrer">
+              <span class="slot-tag">Hazır</span>
+            {% elif c.type == 'upload' %}
+              <img src="/jobs/{{ job.id }}/uploads/{{ s.id }}?v={{ c.ts }}" alt="">
+              <span class="slot-tag mine">Sizin</span>
+            {% else %}
+              <div class="slot-empty">{{ s.title[:1] }}</div>
+              <span class="slot-tag none">Boş</span>
+            {% endif %}
+          </div>
+          <figcaption>
+            <b title="{{ s.title }}">{{ s.title }}</b>
+            {% if c.type == 'stock' and pool.get(c.cid) %}
+              <small class="muted" title="{{ pool[c.cid].title }}">{{ pool[c.cid].creator or 'Openverse' }} · {{ pool[c.cid].license }}</small>
+            {% endif %}
+            <div class="slot-actions">
+              <form method="post" action="/jobs/{{ job.id }}/img/{{ s.id }}/next">
+                <button class="mini" {{ 'disabled' if not g.pool }} title="Aynı gruptan başka bir hazır görsel öner">↻ Başka</button>
+              </form>
+              <form method="post" action="/jobs/{{ job.id }}/img/{{ s.id }}/upload" enctype="multipart/form-data" class="upload-form">
+                <label class="mini">⬆ Yükle<input type="file" name="file" accept="image/*" onchange="this.form.requestSubmit()"></label>
+              </form>
+              {% if c.type != 'none' %}
+              <form method="post" action="/jobs/{{ job.id }}/img/{{ s.id }}/clear"><button class="mini danger" title="Görselsiz bırak">✕</button></form>
+              {% endif %}
+            </div>
+          </figcaption>
+        </figure>
+      {% endfor %}
+    </div>
+  </section>
+{% else %}
+  <section class="card"><p>Bu sitede görsel alanı yok.</p></section>
+{% endfor %}
+
+<form method="post" action="/jobs/{{ job.id }}/build" class="build-bar">
+  <div>
+    <b>{% if job.artifacts.revision and job.artifacts.revision.pending %}Değişikliği uygulayalım mı?{% else %}Hazır mısınız?{% endif %}</b>
+    <span class="muted small">Seçimleriniz uygulanır, Laravel sitesi kurulur ve test edilir (1-3 dk). Görselleri daha sonra yönetim panelinden de değiştirebilirsiniz.</span>
+  </div>
+  {% if need_db_password %}
+    <label class="small">MySQL şifresi<input type="password" name="db_password" required autocomplete="off"></label>
+  {% endif %}
+  <button class="btn big">{% if job.artifacts.revision and job.artifacts.revision.pending %}Değişikliği uygula →{% else %}Siteyi oluştur →{% endif %}</button>
+</form>
+<p class="muted small center">Yapay zekâ ile sıfırdan görsel üretimi bu sürümde yok; hazır görseller Openverse'teki ticari kullanıma açık Creative Commons fotoğraflarıdır ve atıfları sitede listelenir.</p>
+
+<script>
+  // Yükleme sırasında geri bildirim + sayfa kaymasın diye grup bağlantısına dön
+  document.querySelectorAll('.upload-form input[type=file]').forEach((i) =>
+    i.addEventListener('change', () => i.closest('label').classList.add('loading')));
+  document.querySelectorAll('.img-group form').forEach((f) => f.addEventListener('submit', () => {
+    f.querySelectorAll('button').forEach((b) => b.disabled = true);
+  }));
+</script>

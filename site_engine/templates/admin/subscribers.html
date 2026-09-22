@@ -1,0 +1,13 @@
+{% extends "admin/base.html" %}
+{% block title %}Bülten Aboneleri{% endblock %}
+{% block content %}
+<div class="page-top"><h1>Bülten Aboneleri <small>({{ subscribers | length }})</small></h1></div>
+<div class="panel">
+  {% if subscribers %}
+  <table>
+    <thead><tr><th>#</th><th>E-posta</th><th>Tarih</th></tr></thead>
+    <tbody>{% for s in subscribers %}<tr><td>{{ s.id }}</td><td>{{ s.email }}</td><td><small>{{ s.created_at }}</small></td></tr>{% endfor %}</tbody>
+  </table>
+  {% else %}<p class="empty">Henüz abone yok.</p>{% endif %}
+</div>
+{% endblock %}

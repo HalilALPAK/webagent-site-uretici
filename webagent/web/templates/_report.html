@@ -1,0 +1,100 @@
+{% set stored = job.artifacts.report %}
+{% set r = stored.report %}
+{% set f = stored.facts %}
+<div class="head">
+  <div>
+    <a href="/" class="muted small">← İşler</a>
+    <h1>Plan raporu <small class="muted">· {{ f.site_name }}</small></h1>
+    <p class="muted">Site henüz kurulmadı. Aşağıda ne yapılacağı, sizden ne isteneceği ve nelere dikkat
+      edilmesi gerektiği yazıyor. Okuyup onaylarsanız görsel seçimine geçeriz.</p>
+  </div>
+  <div class="status">
+    <a class="btn ghost" href="/jobs/{{ job.id }}/report.md">⬇ Raporu indir</a>
+  </div>
+</div>
+
+<section class="card">
+  <h2>Özet</h2>
+  <p class="lead-text">{{ r.summary }}</p>
+  <div class="stats-row">
+    <div><b>{{ f.entities | length }}</b><span>bölüm</span></div>
+    <div><b>{{ f.records_total }}</b><span>örnek kayıt</span></div>
+    <div><b>{{ f.pages | length }}</b><span>sayfa</span></div>
+    <div><b>{{ f.images.slots }}</b><span>görsel yeri</span></div>
+    <div><b>{{ f.modules | length }}</b><span>modül</span></div>
+  </div>
+</section>
+
+<div class="two">
+  <div>
+    <section class="card">
+      <h2>Sitede ne olacak</h2>
+      <ul class="report-list">
+        {% for i in r.included %}<li><b>{{ i.title }}</b><span class="muted">{{ i.detail }}</span></li>{% endfor %}
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Yapı</h2>
+      <table>
+        <thead><tr><th>Bölüm</th><th>Alan</th><th>Örnek kayıt</th><th>Sitede</th></tr></thead>
+        <tbody>
+          {% for e in f.entities %}
+          <tr><td><b>{{ e.label }}</b> <code>{{ e.name }}</code></td><td>{{ e.fields }}</td><td>{{ e.records }}</td>
+            <td>{{ 'görünür' if e.public else 'yalnızca yönetim' }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <p class="small muted">Sayfalar: {{ f.pages | join(', ') }}</p>
+      <div class="swatches">
+        <span style="background: {{ f.theme.colors[0] }}"></span>
+        <span style="background: {{ f.theme.colors[1] }}"></span>
+        <small class="muted">{{ f.theme.preset }} · {{ 'koyu tema' if f.theme.mode == 'dark' else 'aydınlık tema' }}
+          · {{ f.theme.fonts }} · hero: {{ f.theme.hero }}</small>
+      </div>
+      <p class="small muted">Veri: {{ f.database }} · İletişim: {{ f.contact.phone or '—' }} ·
+        {{ f.contact.email or '—' }} · {{ f.contact.address or '—' }}</p>
+    </section>
+
+    {% if r.from_old_site %}
+    <section class="card">
+      <h2>Mevcut sitenizden devralınanlar</h2>
+      <ul class="report-list plain">{% for x in r.from_old_site %}<li>{{ x }}</li>{% endfor %}</ul>
+      <p class="small muted">{{ f.legacy_items }} kayıt ve {{ f.images.own_site }} görsel devralındı.
+        {% if f.legacy_missing %}Eski sitede bulunamayanlar: {{ f.legacy_missing | join(', ') }}.{% endif %}</p>
+    </section>
+    {% endif %}
+  </div>
+
+  <div>
+    <section class="card">
+      <h2>Sizden istenecekler</h2>
+      <ul class="report-list warn">
+        {% for i in r.needed_from_user %}<li><b>{{ i.title }}</b><span class="muted">{{ i.detail }}</span></li>{% endfor %}
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Dikkat edilecekler</h2>
+      <ul class="report-list risk">
+        {% for i in r.risks %}<li><b>{{ i.title }}</b><span class="muted">{{ i.detail }}</span></li>{% endfor %}
+      </ul>
+    </section>
+
+    {% if r.next_steps %}
+    <section class="card">
+      <h2>Yayına kadar</h2>
+      <ol class="report-steps">{% for s in r.next_steps %}<li>{{ s }}</li>{% endfor %}</ol>
+    </section>
+    {% endif %}
+  </div>
+</div>
+
+<form method="post" action="/jobs/{{ job.id }}/approve" class="build-bar">
+  <div>
+    <b>Planı onaylıyor musunuz?</b>
+    <span class="muted small">Sonraki adımda görselleri seçeceksiniz; site ondan sonra kurulacak.
+      Yapıyı değiştirmek isterseniz site kurulduktan sonra "Siteyi düzenle" ile de değiştirebilirsiniz.</span>
+  </div>
+  <button class="btn big">Onayla, görsellere geç →</button>
+</form>

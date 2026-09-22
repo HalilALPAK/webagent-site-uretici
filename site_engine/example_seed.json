@@ -1,0 +1,53 @@
+{
+  "doctors": [
+    {
+      "name": "Dr. Ayşe Kaya",
+      "title": "Ortodonti Uzmanı",
+      "bio": "15 yıllık deneyim.\n\nŞeffaf plak tedavisinde uzman."
+    },
+    {
+      "name": "Dr. Mehmet Demir",
+      "title": "Ağız Diş Çene Cerrahı",
+      "bio": "İmplant cerrahisi."
+    }
+  ],
+  "services": [
+    {
+      "name": "Dental İmplant",
+      "category": "İmplant",
+      "price": "18.500",
+      "summary": "Kalıcı diş kaybı çözümü",
+      "details": "## Süreç\n\n- Muayene\n- Cerrahi\n- Protez",
+      "doctor": "2",
+      "featured": "true"
+    },
+    {
+      "name": "Şeffaf Plak",
+      "category": "Ortodonti",
+      "price": "45000",
+      "summary": "Görünmez ortodonti",
+      "doctor": "1"
+    },
+    {
+      "name": "Diş Beyazlatma",
+      "category": "Estetik",
+      "price": "4500.50",
+      "summary": "Tek seansta beyaz dişler"
+    }
+  ],
+  "appointments": [
+    {
+      "patient_name": "Ali Veli",
+      "phone": "+90 555 111 22 33",
+      "date": "2026-10-01",
+      "service": "1",
+      "status": "Bekliyor"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "İmplant ağrılı mı?",
+      "answer": "Lokal anestezi ile **ağrısız** yapılır."
+    }
+  ]
+}

@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="two">
+<section class="card">
+  <form method="post" action="/jobs" class="form wizard" id="wizard" enctype="multipart/form-data" {{ 'data-has-key=1' if has_api_key }}>
+    <ol class="steps" aria-label="Adımlar">
+      <li data-step-label="1" class="on">İşletme</li>
+      <li data-step-label="2">Görünüm</li>
+      <li data-step-label="3">Yapay zekâ</li>
+      <li data-step-label="4">Veri</li>
+      <li data-step-label="5">Başlat</li>
+    </ol>
+
+    {# ---------------------------------------------------------------- 1 #}
+    <fieldset data-step="1">
+      <legend>İşletmeniz</legend>
+      <label><span>İşletmenizin adı <span class="req">*</span></span>
+        <input name="brand_name" required placeholder="ör. Mavikıyı Diş Kliniği" autofocus>
+      </label>
+      <label><span>Sektör <span class="req">*</span></span>
+        <input name="sector" required placeholder="ör. diş kliniği, butik otel, oto kiralama, kozmetik e-ticaret">
+      </label>
+      <div class="row">
+        <label>Şehir / pazar<input name="location" placeholder="ör. İzmir" value="Türkiye"></label>
+        <label>Site dili
+          <select name="language"><option value="tr">Türkçe</option><option value="en">English</option><option value="de">Deutsch</option></select>
+        </label>
+        <label>Rakip sayısı<input type="number" name="max_competitors" value="4" min="1" max="8"></label>
+      </div>
+      <label><span>Bildiğiniz rakip siteler <small class="muted">(isteğe bağlı, her satıra bir adres. Kalanları ajanlar bulur)</small></span>
+        <textarea name="competitor_urls" rows="2" placeholder="https://rakip1.com&#10;https://rakip2.com"></textarea>
+      </label>
+      <label><span>Mevcut siteniz <small class="muted">(isteğe bağlı — varsa bilgileriniz ve görselleriniz oradan alınır)</small></span>
+        <input name="own_site" placeholder="https://eskisiteniz.com">
+      </label>
+      <div class="row">
+        <label>Telefon <small class="muted">(isteğe bağlı)</small><input name="contact_phone" placeholder="+90 232 000 00 00"></label>
+        <label>E-posta <small class="muted">(isteğe bağlı)</small><input type="email" name="contact_email" placeholder="info@firmaniz.com"></label>
+      </div>
+      <label><span>Adres <small class="muted">(isteğe bağlı — boş bırakırsanız örnek bilgi yazılır)</small></span>
+        <input name="address" placeholder="Alsancak Mah. 1234 Sk. No:5, Konak / İzmir">
+      </label>
+      <label><span>Logonuz <small class="muted">(isteğe bağlı — PNG/JPG/SVG; yoksa adınızın baş harfinden şık bir logo yapılır)</small></span>
+        <input type="file" name="logo" accept="image/png,image/jpeg,image/webp,image/svg+xml" class="file-input">
+      </label>
+      <label><span>Özel istekler <small class="muted">(isteğe bağlı)</small></span>
+        <textarea name="notes" rows="2" placeholder="ör. online randevu olsun, 3 şubemiz var, hedef kitle 25-45 yaş"></textarea>
+      </label>
+    </fieldset>
+
+    {# ---------------------------------------------------------------- 2 #}
+    <fieldset data-step="2">
+      <legend>Sitenin görünümü</legend>
+      <p class="muted small">Genel tarzı siz seçin; renkleri, yazı tiplerini ve bölüm düzenlerini Tasarım Ajanı
+        sektörünüze göre bunun içinde belirler.</p>
+      <div class="style-grid">
+        <label class="style-card">
+          <input type="radio" name="style" value="auto" checked>
+          <span class="mock mock-auto" aria-hidden="true">
+            <span class="mock-bar"><i></i><i></i><i></i><b></b></span>
+            <span class="mock-hero"><u></u><s></s><em></em></span>
+            <span class="mock-cards"><o></o><o></o><o></o></span>
+          </span>
+          <span class="style-name">Ajan karar versin<small class="muted">Sektöre en uygun görünüm seçilir</small></span>
+        </label>
+        <label class="style-card">
+          <input type="radio" name="style" value="light" >
+          <span class="mock mock-light" aria-hidden="true">
+            <span class="mock-bar"><i></i><i></i><i></i><b></b></span>
+            <span class="mock-hero"><u></u><s></s><em></em></span>
+            <span class="mock-cards"><o></o><o></o><o></o></span>
+          </span>
+          <span class="style-name">Aydınlık ve sade<small class="muted">Kırık beyaz zemin, ölçülü renk</small></span>
+        </label>
+        <label class="style-card">
+          <input type="radio" name="style" value="dark" >
+          <span class="mock mock-dark" aria-hidden="true">
+            <span class="mock-bar"><i></i><i></i><i></i><b></b></span>
+            <span class="mock-hero"><u></u><s></s><em></em></span>
+            <span class="mock-cards"><o></o><o></o><o></o></span>
+          </span>
+          <span class="style-name">Koyu<small class="muted">Koyu zemin, açık yazı; şık durur</small></span>
+        </label>
+        <label class="style-card">
+          <input type="radio" name="style" value="colorful" >
+          <span class="mock mock-colorful" aria-hidden="true">
+            <span class="mock-bar"><i></i><i></i><i></i><b></b></span>
+            <span class="mock-hero"><u></u><s></s><em></em></span>
+            <span class="mock-cards"><o></o><o></o><o></o></span>
+          </span>
+          <span class="style-name">Canlı ve renkli<small class="muted">Doygun renkler, belirgin butonlar</small></span>
+        </label>
+        <label class="style-card">
+          <input type="radio" name="style" value="minimal" >
+          <span class="mock mock-minimal" aria-hidden="true">
+            <span class="mock-bar"><i></i><i></i><i></i><b></b></span>
+            <span class="mock-hero"><u></u><s></s><em></em></span>
+            <span class="mock-cards"><o></o><o></o><o></o></span>
+          </span>
+          <span class="style-name">Çok sade<small class="muted">Neredeyse renksiz, tipografi öne çıkar</small></span>
+        </label>
+      </div>
+    </fieldset>
+
+    {# ---------------------------------------------------------------- 3 #}
+    <fieldset data-step="3">
+      <legend>Yapay zekâ bağlantısı</legend>
+      <p class="muted small">Rakip analizini ve içerikleri Claude yazar. Nasıl bağlanalım?</p>
+      <label class="choice">
+        <input type="radio" name="ai_backend" value="claude-code" {{ 'checked' if claude_cli else 'disabled' }}>
+        <span><b>Bu bilgisayardaki Claude Code oturumu</b>
+          {% if claude_cli %}<span class="ok-badge">bulundu</span>{% else %}<span class="bad">bulunamadı</span>{% endif %}<br>
+          <small class="muted">API anahtarı gerekmez. Claude aboneliğinizin kullanım hakkından düşer.</small></span>
+      </label>
+      <label class="choice">
+        <input type="radio" name="ai_backend" value="api" {{ 'checked' if not claude_cli }}>
+        <span><b>Claude API anahtarı</b> {% if has_api_key %}<span class="ok-badge">kayıtlı</span>{% endif %}<br>
+          <small class="muted">console.anthropic.com'dan alınan anahtar. Kullandığınız kadar ücretlendirilir.</small></span>
+      </label>
+      <div class="sub" data-show-when="ai_backend=api">
+        <label><span>API anahtarı {% if has_api_key %}<small class="muted">(boş bırakırsanız kayıtlı anahtar kullanılır)</small>{% endif %}</span>
+          <input type="password" name="api_key" placeholder="sk-ant-..." autocomplete="off">
+        </label>
+        <label class="inline"><input type="checkbox" name="remember_key" value="1" checked> Bu bilgisayarda hatırla</label>
+      </div>
+    </fieldset>
+
+    {# ---------------------------------------------------------------- 4 #}
+    <fieldset data-step="4">
+      <legend>Sitenin verisi ve arka ucu</legend>
+      <p class="muted small">Site içeriği (ürünler, randevular, mesajlar…) nerede tutulsun?</p>
+      <label class="choice">
+        <input type="radio" name="db_type" value="sqlite" checked>
+        <span><b>Yerel: bu bilgisayarda (SQLite)</b><br>
+          <small class="muted">Kurulum gerektirmez. Deneme ve tek bilgisayar için ideal. İleride sunucuya taşınabilir.</small></span>
+      </label>
+      <label class="choice">
+        <input type="radio" name="db_type" value="mysql">
+        <span><b>Sunucu: MySQL / MariaDB</b><br>
+          <small class="muted">Hosting firmanızın veritabanı. Site yayına alındığında aynı veri kullanılır.</small></span>
+      </label>
+      <div class="sub" data-show-when="db_type=mysql">
+        <div class="row">
+          <label>Sunucu<input name="db_host" placeholder="ör. mysql.firmaniz.com"></label>
+          <label>Port<input type="number" name="db_port" value="3306"></label>
+        </div>
+        <div class="row">
+          <label>Veritabanı adı<input name="db_database"></label>
+          <label>Kullanıcı<input name="db_username" autocomplete="off"></label>
+          <label>Şifre<input type="password" name="db_password" autocomplete="off"></label>
+        </div>
+        <button type="button" class="btn ghost" data-db-test>Bağlantıyı test et</button>
+        <span class="small" data-db-result></span>
+        <p class="muted small">Şifre diske yazılmaz; yalnızca bu oturumda kullanılır.</p>
+      </div>
+      <p class="muted small">Her iki durumda da site bir <b>JSON API</b> (<code>/api/…</code>) ve <b>yönetim paneli</b> (<code>/admin</code>) ile gelir.</p>
+    </fieldset>
+
+    {# ---------------------------------------------------------------- 5 #}
+    <fieldset data-step="5">
+      <legend>Hazır</legend>
+      <dl class="summary" data-summary></dl>
+      <p class="muted small">Ajanlar önce rakipleri analiz eder ve içeriği yazar (5-10 dk). Sonra her görsel grubu için
+        <b>hazır görsel mi kullanalım, siz mi yükleyeceksiniz</b> diye size sorulur.</p>
+    </fieldset>
+
+    <div class="wizard-nav">
+      <button type="button" class="btn ghost" data-prev>← Geri</button>
+      <button type="button" class="btn" data-next>İleri →</button>
+      <button class="btn big" data-submit>Ajanları çalıştır →</button>
+    </div>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Geçmiş işler</h2>
+  {% if jobs %}
+  <ul class="job-list">
+    {% for j in jobs %}
+    <li>
+      <a href="/jobs/{{ j.id }}">
+        <b>{{ j.request.brand_name or j.request.sector }}</b>
+        <small class="muted">{{ j.request.sector }} · {{ j.request.location }} · {{ j.created_at | ts }}</small>
+      </a>
+      <span class="pill {{ j.status }}">{{ STATUS_TR.get(j.status, j.status) }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}<p class="muted">Henüz iş yok.</p>{% endif %}
+  <h2 class="mt">Ajan topluluğu</h2>
+  <ol class="agents">
+    {% for name, desc in agents %}<li><b>{{ name }}</b><span class="muted">{{ desc }}</span></li>{% endfor %}
+  </ol>
+</section>
+</div>
+<script src="/static/wizard.js?v=3"></script>
+{% endblock %}

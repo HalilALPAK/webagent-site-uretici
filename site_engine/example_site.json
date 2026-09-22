@@ -1,0 +1,317 @@
+{
+  "site_name": "Gülüş Diş Kliniği",
+  "slug": "gulus-dis",
+  "tagline": "Modern diş hekimliği, güler yüzlü hizmet",
+  "language": "tr",
+  "sector": "Diş kliniği",
+  "meta_description": "İstanbul'da implant, ortodonti ve estetik diş hekimliği.",
+  "branding": {
+    "primary_color": "#0e7490",
+    "accent_color": "#f59e0b",
+    "font_family": "Inter",
+    "tone": "güven veren"
+  },
+  "hero": {
+    "headline": "Sağlıklı gülüşler için modern klinik",
+    "subheadline": "Uzman hekim kadromuzla implanttan ortodontiye tüm tedaviler tek çatı altında.",
+    "cta_text": "Tedavileri İncele",
+    "cta_link": "/services"
+  },
+  "modules": [
+    {
+      "key": "services",
+      "title": "Tedaviler",
+      "priority": "must",
+      "reason": "Tüm rakiplerde var"
+    },
+    {
+      "key": "team",
+      "title": "Hekimlerimiz",
+      "priority": "must",
+      "reason": "Güven"
+    },
+    {
+      "key": "booking_appointment",
+      "title": "Online Randevu",
+      "priority": "must",
+      "reason": "Dönüşüm"
+    },
+    {
+      "key": "blog_news",
+      "title": "Blog",
+      "priority": "should",
+      "reason": "SEO"
+    },
+    {
+      "key": "faq",
+      "title": "SSS",
+      "priority": "should",
+      "reason": "Destek yükü"
+    },
+    {
+      "key": "pricing_plans",
+      "title": "Şeffaf Fiyat",
+      "priority": "differentiator",
+      "reason": "Rakiplerde yok"
+    }
+  ],
+  "entities": [
+    {
+      "name": "doctors",
+      "label": "Hekim",
+      "label_plural": "Hekimlerimiz",
+      "module_key": "team",
+      "public": true,
+      "show_on_home": true,
+      "title_field": "name",
+      "image_field": "photo",
+      "fields": [
+        {
+          "name": "name",
+          "label": "Ad Soyad",
+          "type": "string",
+          "required": true,
+          "options": [],
+          "relation": null,
+          "show_in_list": true
+        },
+        {
+          "name": "title",
+          "label": "Unvan",
+          "type": "string",
+          "required": false,
+          "options": [],
+          "relation": null,
+          "show_in_list": true
+        },
+        {
+          "name": "photo",
+          "label": "Fotoğraf",
+          "type": "image",
+          "required": false,
+          "options": [],
+          "relation": null,
+          "show_in_list": false
+        },
+        {
+          "name": "bio",
+          "label": "Biyografi",
+          "type": "richtext",
+          "required": false,
+          "options": [],
+          "relation": null,
+          "show_in_list": false
+        }
+      ]
+    },
+    {
+      "name": "services",
+      "label": "Tedavi",
+      "label_plural": "Tedaviler",
+      "module_key": "services",
+      "public": true,
+      "show_on_home": true,
+      "title_field": "name",
+      "image_field": "image",
+      "fields": [
+        {
+          "name": "name",
+          "label": "Tedavi Adı",
+          "type": "string",
+          "required": true,
+          "options": [],
+          "relation": null,
+          "show_in_list": true
+        },
+        {
+          "name": "category",
+          "label": "Kategori",
+          "type": "select",
+          "required": false,
+          "options": [
+            "İmplant",
+            "Ortodonti",
+            "Estetik",
+            "Genel"
+          ],
+          "relation": null,
+          "show_in_list": true
+        },
+        {
+          "name": "price",
+          "label": "Başlangıç Fiyatı",
+          "type": "price",
+          "required": false,
+          "options": [],
+          "relation": null,
+          "show_in_list": true
+        },
+        {
+          "name": "image",
+          "label": "Görsel",
+          "type": "image",
+          "required": false,
+          "options": [],
+          "relation": null,
+          "show_in_list": false
+        },
+        {
+          "name": "summary",
+          "label": "Kısa Açıklama",
+          "type": "text",
+          "required": false,
+          "options": [],
+          "relation": null,
+          "show_in_list": true
+        },
+        {
+          "name": "details",
+          "label": "Detaylar",
+          "type": "richtext",
+          "required": false,
+          "options": [],
+          "relation": null,
+          "show_in_list": false
+        },
+        {
+          "name": "doctor",
+          "label": "Sorumlu Hekim",
+          "type": "relation",
+          "required": false,
+          "options": [],
+          "relation": "doctors",
+          "show_in_list": false
+        },
+        {
+          "name": "featured",
+          "label": "Öne Çıkan",
+          "type": "bool",
+          "required": false,
+          "options": [],
+          "relation": null,
+          "show_in_list": false
+        }
+      ]
+    },
+    {
+      "name": "appointments",
+      "label": "Randevu",
+      "label_plural": "Randevular",
+      "module_key": "booking_appointment",
+      "public": false,
+      "show_on_home": false,
+      "title_field": "patient_name",
+      "image_field": null,
+      "fields": [
+        {
+          "name": "patient_name",
+          "label": "Hasta Adı",
+          "type": "string",
+          "required": true,
+          "options": [],
+          "relation": null,
+          "show_in_list": true
+        },
+        {
+          "name": "phone",
+          "label": "Telefon",
+          "type": "phone",
+          "required": true,
+          "options": [],
+          "relation": null,
+          "show_in_list": true
+        },
+        {
+          "name": "date",
+          "label": "Tarih",
+          "type": "date",
+          "required": true,
+          "options": [],
+          "relation": null,
+          "show_in_list": true
+        },
+        {
+          "name": "service",
+          "label": "Tedavi",
+          "type": "relation",
+          "required": false,
+          "options": [],
+          "relation": "services",
+          "show_in_list": true
+        },
+        {
+          "name": "status",
+          "label": "Durum",
+          "type": "select",
+          "required": false,
+          "options": [
+            "Bekliyor",
+            "Onaylandı",
+            "İptal"
+          ],
+          "relation": null,
+          "show_in_list": true
+        },
+        {
+          "name": "note",
+          "label": "Not",
+          "type": "text",
+          "required": false,
+          "options": [],
+          "relation": null,
+          "show_in_list": false
+        }
+      ]
+    },
+    {
+      "name": "faqs",
+      "label": "Soru",
+      "label_plural": "Sıkça Sorulan Sorular",
+      "module_key": "faq",
+      "public": true,
+      "show_on_home": false,
+      "title_field": "question",
+      "image_field": null,
+      "fields": [
+        {
+          "name": "question",
+          "label": "Soru",
+          "type": "string",
+          "required": true,
+          "options": [],
+          "relation": null,
+          "show_in_list": true
+        },
+        {
+          "name": "answer",
+          "label": "Cevap",
+          "type": "richtext",
+          "required": true,
+          "options": [],
+          "relation": null,
+          "show_in_list": false
+        }
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "slug": "hakkimizda",
+      "title": "Hakkımızda",
+      "in_nav": true,
+      "body_markdown": "## Biz kimiz\n\n2010'dan beri **binlerce** hastamıza hizmet veriyoruz.\n\n- Uzman kadro\n- Steril ortam\n- Şeffaf fiyat"
+    },
+    {
+      "slug": "kvkk",
+      "title": "KVKK Aydınlatma Metni",
+      "in_nav": false,
+      "body_markdown": "Kişisel verileriniz 6698 sayılı kanun kapsamında işlenir."
+    }
+  ],
+  "contact_form": true,
+  "newsletter": true,
+  "search": true,
+  "contact_email": "info@ornek-klinik.com",
+  "contact_phone": "+90 212 000 00 00",
+  "address": "Örnek Mah. Sağlık Cad. No:1, İstanbul"
+}

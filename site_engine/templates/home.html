@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <div class="container hero-inner">
+    <div>
+      <span class="eyebrow">{{ site.sector }}</span>
+      <h1>{{ site.hero.headline }}</h1>
+      <p class="lead">{{ site.hero.subheadline }}</p>
+      <div class="hero-actions">
+        <a class="btn btn-lg" href="{{ site.hero.cta_link }}">{{ site.hero.cta_text }}</a>
+        {% if site.contact_form %}<a class="btn btn-lg btn-ghost" href="/contact">Bize Ulaşın</a>{% endif %}
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      {% for m in site.modules[:6] %}<div class="hero-chip">{{ m.title }}</div>{% endfor %}
+    </div>
+  </div>
+</section>
+
+{% for s in sections %}
+<section class="section {% if loop.index is even %}alt{% endif %}">
+  <div class="container">
+    <div class="section-head">
+      <h2>{{ s.entity.label_plural }}</h2>
+      <a href="/{{ s.entity.name }}" class="link-more">Tümünü gör →</a>
+    </div>
+    {% if s.rows %}
+    <div class="grid">
+      {% for row in s.rows %}{% with ent=s.entity, relations=s.relations %}{% include "_card.html" %}{% endwith %}{% endfor %}
+    </div>
+    {% else %}<p class="muted">Henüz içerik eklenmedi.</p>{% endif %}
+  </div>
+</section>
+{% endfor %}
+
+{% if site.contact_form %}
+<section class="section cta">
+  <div class="container cta-inner">
+    <div><h2>{{ site.site_name }} ile tanışın</h2><p>{{ site.tagline }}</p></div>
+    <a class="btn btn-lg btn-light" href="/contact">İletişime Geçin</a>
+  </div>
+</section>
+{% endif %}
+
+{% if site.newsletter %}
+<section class="section" id="newsletter">
+  <div class="container narrow center">
+    <h2>Bültenimize abone olun</h2>
+    {% if request.query_params.get('subscribed') %}<p class="alert ok">Teşekkürler, aboneliğiniz alındı.</p>{% endif %}
+    <form method="post" action="/newsletter" class="inline-form">
+      <input type="hidden" name="csrf" value="{{ csrf_token(request) }}">
+      <input type="email" name="email" placeholder="E-posta adresiniz" required>
+      <button class="btn">Abone Ol</button>
+    </form>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="{{ site.language }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ site.site_name }} — {{ site.tagline }}{% endblock %}</title>
+  <meta name="description" content="{% block description %}{{ site.meta_description }}{% endblock %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family={{ site.branding.font_family | replace(' ', '+') }}:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    :root { --primary: {{ site.branding.primary_color }}; --accent: {{ site.branding.accent_color }};
+            --font: '{{ site.branding.font_family }}', system-ui, sans-serif; }
+  </style>
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar-inner">
+    <a class="brand" href="/"><span class="brand-mark">{{ site.site_name[:1] }}</span>{{ site.site_name }}</a>
+    <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-label="Menü">
+    <label for="menu-toggle" class="menu-btn" aria-hidden="true"><span></span><span></span><span></span></label>
+    <nav class="mainnav">
+      {% for e in public_entities %}<a href="/{{ e.name }}">{{ e.label_plural }}</a>{% endfor %}
+      {% for p in nav_pages %}<a href="/p/{{ p.slug }}">{{ p.title }}</a>{% endfor %}
+      {% if site.search %}
+      <form action="/search" class="nav-search"><input type="search" name="q" placeholder="Ara…" aria-label="Ara"></form>
+      {% endif %}
+      {% if site.contact_form %}<a href="/contact" class="btn btn-sm">İletişim</a>{% endif %}
+    </nav>
+  </div>
+</header>
+
+<main>{% block content %}{% endblock %}</main>
+
+<footer class="footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/"><span class="brand-mark">{{ site.site_name[:1] }}</span>{{ site.site_name }}</a>
+      <p class="muted">{{ site.tagline }}</p>
+    </div>
+    <div>
+      <h4>Keşfet</h4>
+      {% for e in public_entities %}<a href="/{{ e.name }}">{{ e.label_plural }}</a>{% endfor %}
+    </div>
+    <div>
+      <h4>Kurumsal</h4>
+      {% for p in site.pages %}<a href="/p/{{ p.slug }}">{{ p.title }}</a>{% endfor %}
+    </div>
+    <div>
+      <h4>İletişim</h4>
+      <span>{{ site.contact_phone }}</span>
+      <span>{{ site.contact_email }}</span>
+      <span class="muted">{{ site.address }}</span>
+    </div>
+  </div>
+  <div class="container footer-bottom muted">© {{ year }} {{ site.site_name }}</div>
+</footer>
+</body>
+</html>

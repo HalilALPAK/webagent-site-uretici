@@ -1,0 +1,12 @@
+.env
+__pycache__/
+*.pyc
+data/
+output/
+*.db
+tools/
+dist/*
+build/
+
+# .exe yayınlanmaz ama kullanım kılavuzu depoda dursun
+!dist/README.md

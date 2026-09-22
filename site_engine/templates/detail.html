@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% set title = row[entity.title_field] %}
+{% block title %}{{ title }} — {{ site.site_name }}{% endblock %}
+{% block content %}
+<section class="section"><div class="container detail">
+  <a href="/{{ entity.name }}" class="link-more">← {{ entity.label_plural }}</a>
+  <div class="detail-grid">
+    {% if entity.image_field and row[entity.image_field] %}
+      <img class="detail-img" src="{{ row[entity.image_field] }}" alt="{{ title }}">
+    {% endif %}
+    <div>
+      <h1>{{ title }}</h1>
+      <dl class="facts">
+      {% for f in entity.fields if f.name != entity.title_field and f.type not in ('image', 'richtext', 'text') and row[f.name] not in (None, '') %}
+        <div><dt>{{ f.label }}</dt><dd>
+          {% if f.type == 'url' %}<a href="{{ row[f.name] }}" rel="nofollow noopener" target="_blank">{{ row[f.name] }}</a>
+          {% elif f.type == 'email' %}<a href="mailto:{{ row[f.name] }}">{{ row[f.name] }}</a>
+          {% elif f.type == 'price' %}<span class="price">{{ fmt(row[f.name], f, relations) }}</span>
+          {% else %}{{ fmt(row[f.name], f, relations) }}{% endif %}
+        </dd></div>
+      {% endfor %}
+      </dl>
+      {% if site.contact_form %}<a class="btn" href="/contact?subject={{ title | urlencode }}">Bilgi Al</a>{% endif %}
+    </div>
+  </div>
+  {% for f in entity.fields if f.type in ('text', 'richtext') and row[f.name] %}
+    <article class="prose"><h2>{{ f.label }}</h2>{{ row[f.name] | md }}</article>
+  {% endfor %}
+  {% if others %}
+  <h2 class="mt">Diğer {{ entity.label_plural }}</h2>
+  <div class="grid">{% for row in others %}{% with ent=entity %}{% include "_card.html" %}{% endwith %}{% endfor %}</div>
+  {% endif %}
+</div></section>
+{% endblock %}

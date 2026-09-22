@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ job.request.brand_name or job.request.sector }} — Web Agent{% endblock %}
+{% block content %}
+
+{% if job.status == 'awaiting_review' %}
+  {% include "_report.html" %}
+{% elif job.status == 'awaiting_images' %}
+  {% include "_images.html" %}
+{% else %}
+  <div id="job-body">{% include "_job_body.html" %}</div>
+  <script>
+    // Görev sürerken gövdeyi 2 sn'de bir yenile; görsel seçimine geçince sayfayı baştan yükle
+    (function poll() {
+      const body = document.getElementById('job-body');
+      const live = () => body.querySelector('[data-live="1"]');
+      if (!live()) return;
+      setTimeout(async function tick() {
+        try {
+          const r = await fetch('/jobs/{{ job.id }}/partial');
+          if (r.ok) body.innerHTML = await r.text();
+          if (body.querySelector('[data-reload="1"]')) { location.reload(); return; }
+        } catch (e) {}
+        if (live()) setTimeout(tick, 2000);
+      }, 2000);
+    })();
+  </script>
+{% endif %}
+{% endblock %}

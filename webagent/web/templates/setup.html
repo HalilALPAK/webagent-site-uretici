@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}İlk kurulum — Web Agent{% endblock %}
+{% block content %}
+<section class="card narrow-card">
+  <h1>Hoş geldiniz 👋</h1>
+  <p>Siteler <b>PHP / Laravel</b> ile üretiliyor. İlk kullanımdan önce gerekli bileşenleri bu bilgisayara bir kez kuracağız:</p>
+  <ul class="checklist">
+    <li>Taşınabilir <b>PHP 8.4</b> <span class="muted">(yaklaşık 30 MB, resmi sitesinden, imza doğrulamalı)</span></li>
+    <li><b>Composer</b> <span class="muted">(PHP paket yöneticisi)</span></li>
+    <li><b>Laravel 13 + Filament</b> temel projesi <span class="muted">(yaklaşık 110 MB)</span></li>
+  </ul>
+  <p class="muted small">Yönetici yetkisi gerekmez. Her şey <code>Belgeler\WebAgent\tools</code> klasörüne kurulur. İnternet hızına göre 2-5 dakika sürer.</p>
+
+  <div id="setup-state">
+    {% if setup.running %}
+      <p><span class="spinner"></span> Kuruluyor…</p>
+    {% elif setup.error %}
+      <div class="alert err"><b>Kurulum başarısız:</b> {{ setup.error }}</div>
+      <form method="post" action="/setup/start"><button class="btn big">Tekrar dene</button></form>
+    {% else %}
+      <form method="post" action="/setup/start"><button class="btn big">Kurulumu başlat</button></form>
+    {% endif %}
+  </div>
+  <pre class="setup-log" id="setup-log">{{ setup.log | join('\n') }}</pre>
+</section>
+<script>
+  (async function poll() {
+    try {
+      const s = await (await fetch('/setup/status')).json();
+      document.getElementById('setup-log').textContent = s.log.join('\n');
+      const log = document.getElementById('setup-log'); log.scrollTop = log.scrollHeight;
+      if (s.ready) { location.href = '/'; return; }
+      if (s.error && !s.running) { location.reload(); return; }
+      if (s.running) { document.getElementById('setup-state').innerHTML = '<p><span class="spinner"></span> Kuruluyor…</p>'; }
+    } catch (e) {}
+    setTimeout(poll, 1500);
+  })();
+</script>
+{% endblock %}

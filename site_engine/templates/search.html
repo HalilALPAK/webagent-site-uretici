@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Arama — {{ site.site_name }}{% endblock %}
+{% block content %}
+<section class="page-head"><div class="container">
+  <h1>Arama</h1>
+  <form class="inline-form"><input type="search" name="q" value="{{ q }}" placeholder="Ne arıyorsunuz?" autofocus><button class="btn">Ara</button></form>
+</div></section>
+<section class="section"><div class="container">
+  {% for r in results %}
+    <h2>{{ r.entity.label_plural }} <small class="muted">({{ r.total }})</small></h2>
+    <div class="grid">{% for row in r.rows %}{% with ent=r.entity, relations={} %}{% include "_card.html" %}{% endwith %}{% endfor %}</div>
+  {% else %}
+    {% if q %}<p class="muted">"{{ q }}" için sonuç bulunamadı.</p>{% endif %}
+  {% endfor %}
+</div></section>
+{% endblock %}

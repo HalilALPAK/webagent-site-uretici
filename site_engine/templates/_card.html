@@ -1,0 +1,18 @@
+{# beklenen değişkenler: row, ent, relations #}
+<a class="card" href="/{{ ent.name }}/{{ row.id }}">
+  {% if ent.image_field %}
+    {% if row[ent.image_field] %}
+      <img class="card-img" src="{{ row[ent.image_field] }}" alt="{{ row[ent.title_field] }}" loading="lazy">
+    {% else %}<div class="card-img placeholder">{{ (row[ent.title_field] or '?')[:1] }}</div>{% endif %}
+  {% endif %}
+  <div class="card-body">
+    <h3>{{ row[ent.title_field] }}</h3>
+    {% for f in ent.fields if f.show_in_list and f.name != ent.title_field and f.type != 'image' %}
+      {% if loop.index <= 3 and row[f.name] not in (None, '') %}
+        {% if f.type == 'price' %}<div class="price">{{ fmt(row[f.name], f, relations) }}</div>
+        {% elif f.type in ('select', 'relation', 'bool') %}<span class="tag">{{ fmt(row[f.name], f, relations) }}</span>
+        {% else %}<p class="muted">{{ fmt(row[f.name], f, relations) }}</p>{% endif %}
+      {% endif %}
+    {% endfor %}
+  </div>
+</a>
