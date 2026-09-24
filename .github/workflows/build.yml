@@ -1,8 +1,9 @@
 name: Paketleri üret
 
 # PyInstaller çapraz derleme yapmaz: her paket kendi işletim sisteminde üretilir.
-# Linux paketi manylinux_2_28 kabında derlenir; böylece glibc 2.28+ olan dağıtımlarda
-# (Ubuntu 20.04+, Debian 11+, RHEL/Rocky 8+, Fedora 34+) çalışır.
+# Linux paketi Debian 11 kabında (glibc 2.31) derlenir; böylece Ubuntu 20.04+, Debian 11+,
+# Fedora 33+ ve RHEL/Rocky 9+ dağıtımlarında çalışır. Python, uv'nin taşınabilir CPython'ı
+# (manylinux'un paylaşımlı kütüphanesi olmayan Python'u PyInstaller ile kullanılamıyor).
 
 on:
   workflow_dispatch:
@@ -16,14 +17,19 @@ jobs:
   linux:
     name: Linux (x86_64)
     runs-on: ubuntu-latest
-    container: quay.io/pypa/manylinux_2_28_x86_64
+    container: debian:11
     steps:
-      - uses: actions/checkout@v4
-      - name: Bağımlılıklar
+      - name: Kap hazırlığı
         run: |
-          /opt/python/cp312-cp312/bin/python -m venv /tmp/venv
-          /tmp/venv/bin/pip install --quiet --upgrade pip
-          /tmp/venv/bin/pip install --quiet -r requirements.txt pyinstaller
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends ca-certificates curl git xz-utils
+      - uses: actions/checkout@v4
+      - name: Python ve bağımlılıklar
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
+          uv python install 3.12
+          uv venv --python 3.12 /tmp/venv
+          VIRTUAL_ENV=/tmp/venv uv pip install --quiet -r requirements.txt pyinstaller
       - name: Derle
         run: /tmp/venv/bin/python build_exe.py
       - name: Sürüm bilgisi

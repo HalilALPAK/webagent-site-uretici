@@ -14,6 +14,9 @@ import shutil
 import sys
 from pathlib import Path
 
+if hasattr(sys.stdout, "reconfigure"):  # CI'da konsol cp1252 olabiliyor, Türkçe çıktı bozulmasın
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 ROOT = Path(__file__).resolve().parent
 BUILD = ROOT / "build"
 SEP = ";" if sys.platform == "win32" else ":"
