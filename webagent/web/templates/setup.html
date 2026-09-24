@@ -5,11 +5,27 @@
   <h1>Hoş geldiniz 👋</h1>
   <p>Siteler <b>PHP / Laravel</b> ile üretiliyor. İlk kullanımdan önce gerekli bileşenleri bu bilgisayara bir kez kuracağız:</p>
   <ul class="checklist">
-    <li>Taşınabilir <b>PHP 8.4</b> <span class="muted">(yaklaşık 30 MB, resmi sitesinden, imza doğrulamalı)</span></li>
+    {% if windows %}
+      <li>Taşınabilir <b>PHP 8.4</b> <span class="muted">(yaklaşık 30 MB, resmi sitesinden, imza doğrulamalı)</span></li>
+    {% elif php_path and not php_problem %}
+      <li><b>PHP</b> bulundu <span class="muted"><code>{{ php_path }}</code></span></li>
+    {% else %}
+      <li><b>PHP 8.2+</b> <span class="muted">— sistemde
+        {% if php_problem %}var ama kullanılamıyor ({{ php_problem }}){% else %}kurulu değil{% endif %};
+        aşağıdaki komutla kurmanız gerekiyor</span></li>
+    {% endif %}
     <li><b>Composer</b> <span class="muted">(PHP paket yöneticisi)</span></li>
     <li><b>Laravel 13 + Filament</b> temel projesi <span class="muted">(yaklaşık 110 MB)</span></li>
   </ul>
-  <p class="muted small">Yönetici yetkisi gerekmez. Her şey <code>Belgeler\WebAgent\tools</code> klasörüne kurulur. İnternet hızına göre 2-5 dakika sürer.</p>
+  {% if not windows and (not php_path or php_problem) %}
+    <p>PHP'yi kurmak için bir terminalde:</p>
+    <pre class="setup-log">{{ php_hint }}</pre>
+    <p class="muted small">Kurduktan sonra <b>Kurulumu başlat</b> düğmesine basın.</p>
+  {% endif %}
+  <p class="muted small">
+    {% if windows %}Yönetici yetkisi gerekmez. Her şey{% else %}Laravel bileşenleri{% endif %}
+    <code>{{ home_dir }}{{ '\\' if windows else '/' }}tools</code> klasörüne kurulur.
+    İnternet hızına göre 2-5 dakika sürer.</p>
 
   <div id="setup-state">
     {% if setup.running %}

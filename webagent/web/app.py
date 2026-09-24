@@ -21,7 +21,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from ..agents.laravel_builder import NO_WINDOW, SERVER_SCRIPT
-from ..config import JOBS_DIR, MODEL, OUTPUT_DIR, php_bin, save_env_value, tools_ready
+from ..config import HOME_DIR, JOBS_DIR, MODEL, OUTPUT_DIR, php_bin, save_env_value, tools_ready
 from ..jobs import SECRETS, JobRequest, list_jobs, load_job, load_job_dict, new_job
 from ..llm import find_claude_cli
 from ..deploy import DeployAgent, Target
@@ -146,7 +146,12 @@ def _ctx(request: Request, **kw) -> dict:
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     if not tools_ready():
-        return templates.TemplateResponse(request, "setup.html", _ctx(request, setup=SETUP))
+        from ..setup_tools import install_hint, system_php_problem
+        php = php_bin()
+        return templates.TemplateResponse(request, "setup.html", _ctx(
+            request, setup=SETUP, windows=os.name == "nt", home_dir=HOME_DIR,
+            php_path=php, php_problem=system_php_problem(php) if php else None, php_hint=install_hint(),
+        ))
     return templates.TemplateResponse(request, "index.html", _ctx(
         request, jobs=list_jobs(), claude_cli=find_claude_cli(),
         has_api_key=bool(os.environ.get("ANTHROPIC_API_KEY")),
@@ -513,6 +518,12 @@ def open_target(job_id: str, what: str = Form("folder")):
         target = base + ("/admin" if what == "admin" else "")
     if os.name == "nt":
         os.startfile(target)  # noqa: S606 — yalnızca kendi ürettiğimiz klasör/yerel URL
+    elif what == "folder":  # Linux/macOS: klasörü dosya yöneticisinde aç
+        opener = "open" if sys.platform == "darwin" else "xdg-open"
+        try:
+            subprocess.Popen([opener, target], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except OSError:
+            raise HTTPException(400, f"Klasör açılamadı; elle açın: {target}")
     else:
         import webbrowser
         webbrowser.open(target)

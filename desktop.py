@@ -13,14 +13,44 @@ import time
 import traceback
 
 
+class _Tee:
+    """Aynı çıktıyı hem konsola hem günlük dosyasına yazar."""
+
+    def __init__(self, *streams) -> None:
+        self.streams = [s for s in streams if s is not None]
+
+    def write(self, text: str) -> int:
+        for s in self.streams:
+            try:
+                s.write(text)
+                s.flush()
+            except Exception:  # kapalı konsol / dolu disk günlüğü engellemesin
+                pass
+        return len(text)
+
+    def flush(self) -> None:
+        for s in self.streams:
+            try:
+                s.flush()
+            except Exception:
+                pass
+
+    def isatty(self) -> bool:
+        return False
+
+
 def _redirect_output() -> None:
-    """--noconsole paketlemede stdout/stderr None olur; günlükleri dosyaya yaz."""
-    if sys.stdout is None or sys.stderr is None:
-        from webagent.config import HOME_DIR
-        HOME_DIR.mkdir(parents=True, exist_ok=True)
+    """Günlükleri her zaman HOME_DIR/webagent.log'a yaz; konsol varsa oraya da yazmaya devam et.
+    (--noconsole paketlemede ve masaüstünden başlatılan Linux sürümünde stdout kullanılamaz.)"""
+    from webagent.config import HOME_DIR
+    HOME_DIR.mkdir(parents=True, exist_ok=True)
+    try:
         log = open(HOME_DIR / "webagent.log", "a", encoding="utf-8", buffering=1)
-        sys.stdout = sys.stdout or log
-        sys.stderr = sys.stderr or log
+    except OSError:
+        return
+    print(f"--- Web Agent {time.strftime('%d.%m.%Y %H:%M')} ---", file=log)
+    sys.stdout = _Tee(sys.stdout, log)
+    sys.stderr = _Tee(sys.stderr, log)
 
 
 def _isolate_child_processes() -> None:
@@ -63,10 +93,18 @@ def main() -> None:
         time.sleep(0.1)
     url = f"http://127.0.0.1:{port}/"
 
-    if os.environ.get("WEBAGENT_HEADLESS"):  # test/sunucu modu: pencere açmadan yalnızca sunucu
+    # Masaüstü yoksa (sunucu, SSH, konteyner) pencere açmaya çalışma; adresi yazıp sunucu olarak kal
+    no_display = os.name != "nt" and sys.platform != "darwin" and not (
+        os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
+    if os.environ.get("WEBAGENT_HEADLESS") or no_display:  # test/sunucu modu
+        if no_display and not os.environ.get("WEBAGENT_HEADLESS"):
+            print("Grafik arayüz bulunamadı (DISPLAY yok); tarayıcıdan bu adrese girin:", flush=True)
         print(f"Web Agent: {url}", flush=True)
-        while not server.should_exit:
-            time.sleep(1)
+        try:
+            while not server.should_exit:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            pass
         return
 
     try:
@@ -77,7 +115,9 @@ def main() -> None:
                               min_size=(960, 640), text_select=True)
         webview.start()
     except Exception:
+        # Linux'ta pencere için GTK/WebKit2 gerekir (python3-gi, gir1.2-webkit2-4.1); yoksa tarayıcıya düş
         traceback.print_exc()
+        print(f"Pencere açılamadı, tarayıcıda açılıyor: {url}", flush=True)
         import webbrowser
         webbrowser.open(url)
         try:

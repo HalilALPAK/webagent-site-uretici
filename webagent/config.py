@@ -3,7 +3,8 @@
 İki kök dizin vardır:
   RES_DIR  — salt okunur kaynaklar (şablonlar, DESIGN.md, laravel_stubs). .exe içinde paketlenir.
   HOME_DIR — yazılabilir veriler (görevler, üretilen siteler, PHP/Laravel araçları, .env).
-Geliştirme ortamında ikisi de proje klasörüdür; .exe'de HOME_DIR = Belgeler/WebAgent.
+Geliştirme ortamında ikisi de proje klasörüdür; paketlenmiş uygulamada HOME_DIR
+Windows'ta Belgeler/WebAgent, Linux/macOS'ta ~/WebAgent olur.
 """
 from __future__ import annotations
 
@@ -16,7 +17,7 @@ RES_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
 if os.environ.get("WEBAGENT_HOME"):
     HOME_DIR = Path(os.environ["WEBAGENT_HOME"])
 elif FROZEN:
-    HOME_DIR = Path.home() / "Documents" / "WebAgent"
+    HOME_DIR = (Path.home() / "Documents" / "WebAgent") if os.name == "nt" else (Path.home() / "WebAgent")
 else:
     HOME_DIR = RES_DIR
 ROOT = RES_DIR  # geriye uyumluluk
@@ -64,16 +65,28 @@ STACK = os.environ.get("WEBAGENT_STACK", "laravel")
 LARAVEL_BASE = Path(os.environ.get("LARAVEL_BASE", TOOLS_DIR / "laravel-base"))
 
 
+# Linux dağıtımları PHP'yi sürüm ekli adlarla da kurar (php8.3 gibi); yenisini tercih et
+PHP_NAMES = ["php"] if os.name == "nt" else ["php", "php8.4", "php8.3", "php8.2"]
+
+
 def php_bin() -> str | None:
     """PHP_BIN ortam değişkeni, taşınabilir PHP (tools/php) ya da PATH'teki php."""
     import shutil
     env = os.environ.get("PHP_BIN")
     if env and Path(env).exists():
         return env
-    local = TOOLS_DIR / "php" / ("php.exe" if os.name == "nt" else "php")
-    if local.exists():
-        return str(local)
-    return shutil.which("php")
+    for local in (TOOLS_DIR / "php" / ("php.exe" if os.name == "nt" else "php"),
+                  TOOLS_DIR / "php" / "bin" / "php"):
+        if local.exists():
+            # Taşınabilir PHP kendi php.ini'sini kullansın (statik derlemeler PHPRC ile bulur)
+            if (local.parent / "php.ini").exists():
+                os.environ.setdefault("PHPRC", str(local.parent))
+            return str(local)
+    for name in PHP_NAMES:
+        found = shutil.which(name)
+        if found:
+            return found
+    return None
 
 
 def tools_ready() -> bool:

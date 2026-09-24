@@ -10,23 +10,32 @@ rakip siteleri bulup inceler, hangi bölümlerin gerektiğine karar verir, içer
 
 ## İndirme
 
-| | |
-|---|---|
-| **İndir** | **[⬇ WebAgent.exe](https://github.com/HalilALPAK/webagent-site-uretici/releases/latest/download/WebAgent.exe)** |
-| Sürüm | 1.0 · 21.09.2026 |
-| Boyut | 38 MB (tek dosya, kurulum gerektirmez) |
-| Sistem | Windows 10 / 11, 64-bit |
-| SHA-256 | `dd66e61f4f49a4f9f70fa65ec0d95c33d33664526662aa6c296cbc7931f0913c` |
+Sürüm **1.1** · 24.09.2026 · tek dosya, kurulum gerektirmez.
 
-Tüm sürümler ve değişiklik notları: [github.com/HalilALPAK/webagent-site-uretici/releases](https://github.com/HalilALPAK/webagent-site-uretici/releases)
+| Sistem | Dosya | Boyut |
+|---|---|---|
+| **Windows** 10 / 11 (64-bit) | **[⬇ WebAgent.exe](https://github.com/HalilALPAK/webagent-site-uretici/releases/latest/download/WebAgent.exe)** | 38 MB |
+| **Linux** x86_64 — Ubuntu 20.04+, Debian 11+, Fedora, Rocky/RHEL 8+ | **[⬇ WebAgent-linux-x86_64](https://github.com/HalilALPAK/webagent-site-uretici/releases/latest/download/WebAgent-linux-x86_64)** | 32 MB |
 
-> **İndirdiğiniz dosyayı doğrulamak için** PowerShell'de:
-> `Get-FileHash .\WebAgent.exe -Algorithm SHA256`
-> Çıkan değer yukarıdaki SHA-256 ile aynı olmalıdır.
+Tüm sürümler, SHA-256 değerleri ve değişiklik notları:
+[github.com/HalilALPAK/webagent-site-uretici/releases](https://github.com/HalilALPAK/webagent-site-uretici/releases)
+
+macOS, ARM işlemci ya da çok eski bir dağıtım kullanıyorsanız kaynaktan çalıştırabilirsiniz:
+
+```bash
+git clone https://github.com/HalilALPAK/webagent-site-uretici.git
+cd webagent-site-uretici && ./webagent.sh
+```
+
+> **İndirdiğiniz dosyayı doğrulamak için** (çıkan değer sürüm sayfasındakiyle aynı olmalı):
+> Windows PowerShell: `Get-FileHash .\WebAgent.exe -Algorithm SHA256`
+> Linux: `sha256sum WebAgent-linux-x86_64`
 
 ---
 
 ## İlk çalıştırma
+
+### Windows
 
 1. `WebAgent.exe` dosyasına çift tıklayın.
 2. Windows **"Bilgisayarınız korundu"** uyarısı gösterebilir (uygulama dijital imzalı olmadığı için normaldir):
@@ -35,6 +44,30 @@ Tüm sürümler ve değişiklik notları: [github.com/HalilALPAK/webagent-site-u
 4. **İlk açılışta bir kurulum ekranı** gelir: siteleri üretmek için gereken PHP, Composer ve Laravel
    bileşenleri indirilir (yaklaşık 150 MB, internet hızınıza göre 2-5 dakika). Yönetici yetkisi istenmez,
    her şey `Belgeler\WebAgent\tools` klasörüne kurulur. Bu yalnızca bir kez olur.
+
+### Linux
+
+1. İndirdiğiniz dosyaya çalıştırma izni verin ve açın:
+
+   ```bash
+   chmod +x WebAgent-linux-x86_64
+   ./WebAgent-linux-x86_64
+   ```
+
+   İzni verdikten sonra dosya yöneticisinden çift tıklayarak da açabilirsiniz.
+2. Uygulama kendi penceresinde açılır. Pencere bileşenleri (GTK/WebKit) yoksa **varsayılan tarayıcınızda**
+   açılır — ikisi de aynı uygulamadır. Kendi penceresini isterseniz:
+   `sudo apt install -y python3-gi gir1.2-webkit2-4.1`
+3. **PHP gerekir.** Kurulum ekranı sisteminizde PHP yoksa ya da eklentileri eksikse tam komutu yazar, örneğin:
+
+   ```bash
+   sudo apt install -y php-cli php-sqlite3 php-curl php-mbstring php-xml php-zip php-gd php-intl
+   ```
+
+   Kurduktan sonra ekrandaki **Kurulumu başlat** düğmesine basın: Composer ve Laravel bileşenleri
+   `~/WebAgent/tools` klasörüne iner (yaklaşık 110 MB). Bu yalnızca bir kez olur.
+4. Grafik arayüz olmayan bir makinede (sunucu, SSH) uygulama adresi yazar —
+   `Web Agent: http://127.0.0.1:8765/` — tarayıcınızdan o adrese girin.
 
 ---
 
@@ -105,25 +138,34 @@ kontrol edilir. Sunucunuzda **PHP 8.3+** ve **zip** eklentisi gerekir.
 
 ## Dosyalarınız nerede?
 
-Her şey **`Belgeler\WebAgent`** klasöründe:
+Her şey tek bir klasörde: Windows'ta **`Belgeler\WebAgent`**, Linux'ta **`~/WebAgent`**:
 
 ```
-Belgeler\WebAgent\
-├── output\        üretilen siteler (her site kendi klasöründe)
-├── data\jobs\     iş geçmişi ve seçimleriniz
-├── tools\         PHP, Composer, Laravel bileşenleri
+WebAgent/
+├── output/        üretilen siteler (her site kendi klasöründe)
+├── data/jobs/     iş geçmişi ve seçimleriniz
+├── tools/         Composer, Laravel bileşenleri (Windows'ta PHP de burada)
 └── webagent.log   sorun olursa buraya bakın
 ```
 
-Uygulamayı silmek için: `WebAgent.exe` dosyasını ve bu klasörü silmeniz yeterlidir. Kayıt defterine
-(registry) hiçbir şey yazılmaz.
+Uygulamayı silmek için: indirdiğiniz dosyayı ve bu klasörü silmeniz yeterlidir. Sisteme hiçbir şey
+yazılmaz (Windows'ta kayıt defterine, Linux'ta `/usr` altına dokunulmaz).
 
 ---
 
 ## Sık karşılaşılanlar
 
-**Pencere açılmıyor.** `Belgeler\WebAgent\webagent.log` dosyasının son satırlarına bakın. Windows'un
-WebView2 bileşeni eksikse uygulama siteyi varsayılan tarayıcınızda açar.
+**Pencere açılmıyor.** Günlük dosyasının son satırlarına bakın (`Belgeler\WebAgent\webagent.log` /
+`~/WebAgent/webagent.log`). Windows'ta WebView2, Linux'ta GTK/WebKit bileşeni eksikse uygulama
+arayüzü varsayılan tarayıcınızda açar — çalışmaya devam eder.
+
+**Linux'ta hiç açılmıyor.** Terminalden çalıştırıp çıkan mesajı okuyun: `./WebAgent-linux-x86_64`.
+"Permission denied" diyorsa `chmod +x WebAgent-linux-x86_64`. "GLIBC_2.28 not found" gibi bir hata
+veriyorsa dağıtımınız çok eski; kaynaktan çalıştırın (`./webagent.sh`).
+
+**Linux'ta "Uygun bir PHP bulunamadı" diyor.** Ekrandaki komutu terminalde çalıştırıp PHP'yi kurun,
+sonra "Kurulumu başlat"a basın. PHP kuruluysa eklentileri eksik olabilir; ekran hangi eklentinin
+eksik olduğunu yazar.
 
 **Kurulum yarıda kaldı.** İnterneti kontrol edip "Tekrar dene" düğmesine basın; indirilen dosyalar
 imzalarıyla doğrulandığı için yarım kalan kurulum baştan alınır.
@@ -131,8 +173,9 @@ imzalarıyla doğrulandığı için yarım kalan kurulum baştan alınır.
 **"Claude Code bulunamadı" yazıyor.** Ya bu bilgisayara Claude Code kurup giriş yapın ya da
 sihirbazın yapay zekâ adımında bir Claude API anahtarı girin.
 
-**Site açılmıyor / boş geliyor.** Site klasöründeki `run.bat` dosyasını çalıştırıp hata mesajını
-okuyun. Bir sitenin kendi testlerini `php artisan test` ile de çalıştırabilirsiniz.
+**Site açılmıyor / boş geliyor.** Site klasöründeki başlatıcıyı çalıştırıp hata mesajını okuyun:
+Windows'ta `run.bat`, Linux'ta `./run.sh`. Bir sitenin kendi testlerini `php artisan test` ile de
+çalıştırabilirsiniz.
 
 ---
 
@@ -156,4 +199,5 @@ okuyun. Bir sitenin kendi testlerini `php artisan test` ile de çalıştırabili
 
 Kaynak kod, ajanların nasıl çalıştığı, tasarım rehberi ve testler için projenin ana klasöründeki
 [README.md](https://github.com/HalilALPAK/webagent-site-uretici/blob/master/README.md) ve [DESIGN.md](https://github.com/HalilALPAK/webagent-site-uretici/blob/master/DESIGN.md) dosyalarına bakın.
-Exe'yi yeniden üretmek: `python build_exe.py`
+Paketleri yeniden üretmek: `python build_exe.py` (her paket kendi işletim sisteminde derlenir; Windows →
+`WebAgent.exe`, Linux → `WebAgent-linux-<mimari>`). `v*` etiketiyle CI ikisini birden üretir.

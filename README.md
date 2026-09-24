@@ -1,22 +1,33 @@
 # Web Agent — Rakip Analizinden Çok Ajanlı Site Üretimi
 
-[![İndir](https://img.shields.io/badge/Windows%20i%C3%A7in%20indir-WebAgent.exe%20%C2%B7%2038%20MB-4f46e5?style=for-the-badge&logo=windows)](https://github.com/HalilALPAK/webagent-site-uretici/releases/latest/download/WebAgent.exe)
+[![Windows](https://img.shields.io/badge/Windows-WebAgent.exe-4f46e5?style=for-the-badge&logo=windows)](https://github.com/HalilALPAK/webagent-site-uretici/releases/latest/download/WebAgent.exe)
+[![Linux](https://img.shields.io/badge/Linux-WebAgent--linux--x86__64-16a34a?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/HalilALPAK/webagent-site-uretici/releases/latest/download/WebAgent-linux-x86_64)
 
-**[⬇ WebAgent.exe indir](https://github.com/HalilALPAK/webagent-site-uretici/releases/latest/download/WebAgent.exe)** · [kullanım kılavuzu](dist/README.md) · [tüm sürümler](https://github.com/HalilALPAK/webagent-site-uretici/releases)
+**İndir:** [Windows (.exe)](https://github.com/HalilALPAK/webagent-site-uretici/releases/latest/download/WebAgent.exe) · [Linux (x86_64)](https://github.com/HalilALPAK/webagent-site-uretici/releases/latest/download/WebAgent-linux-x86_64) · [kullanım kılavuzu](dist/README.md) · [tüm sürümler](https://github.com/HalilALPAK/webagent-site-uretici/releases)
 
 Bir **sektör** girersiniz. Ajan topluluğu rakip siteleri bulur, tarar ve modüllerini çıkarır. Sonra
 bunlardan bir modül stratejisi kurar ve size çalışır durumda bir **PHP / Laravel 13** projesi üretir:
 ziyaretçi sitesi (Blade), **Filament** admin paneli, JSON API ve SQLite veritabanı.
 Görsel dil [DESIGN.md](DESIGN.md) rehberinden gelir.
 
-## Masaüstü uygulaması (WebAgent.exe)
+## Masaüstü uygulaması (Windows ve Linux)
 
 > Uygulamayı **kullanacak kişi** için hazırlanmış kurulum ve kullanım kılavuzu: [dist/README.md](dist/README.md)
 
-`dist/WebAgent.exe` tek dosyadır, çift tıklayınca kendi penceresinde açılır:
+| Platform | Dosya | Notlar |
+|---|---|---|
+| Windows 10/11 x64 | `WebAgent.exe` | Kendi penceresinde açılır (WebView2). PHP 8.4 otomatik indirilir |
+| Linux x86_64 | `WebAgent-linux-x86_64` | `chmod +x` sonrası çalışır. PHP dağıtımın paketinden kurulur |
+| Diğer (macOS, ARM, eski glibc) | kaynaktan | `./webagent.sh` — sanal ortam kurup uygulamayı açar |
 
-1. **İlk kurulum** (yalnızca ilk açılışta): PHP 8.4, Composer ve Laravel + Filament temel projesi
-   `Belgeler\WebAgent	ools` klasörüne indirilir. İndirilen dosyalar SHA-256 ile doğrulanır, yönetici yetkisi gerekmez.
+Tek dosyadır, çift tıklayınca (Linux'ta `chmod +x WebAgent-linux-x86_64` sonrası) açılır:
+
+1. **İlk kurulum** (yalnızca ilk açılışta): Composer ve Laravel + Filament temel projesi indirilir.
+   - **Windows:** taşınabilir PHP 8.4 de indirilir (`Belgeler\WebAgent\tools`), yönetici yetkisi gerekmez;
+     indirilen dosyalar SHA-256 ile doğrulanır.
+   - **Linux:** PHP sistemden kullanılır. Yoksa ya da eklentileri eksikse kurulum ekranı dağıtımınıza uygun
+     komutu gösterir (ör. `sudo apt install -y php-cli php-sqlite3 php-curl php-mbstring php-xml php-zip php-gd php-intl`);
+     kurduktan sonra "Kurulumu başlat" yeterlidir. Laravel bileşenleri `~/WebAgent/tools` klasörüne iner.
 2. **Sihirbaz:**
    - İşletme adı, sektör, şehir, bilinen rakipler ve özel istekler
    - **Mevcut siteniz** (varsa): adresini yazarsanız Miras Ajanı oradan gerçek bilgileri (iletişim, hakkımızda,
@@ -42,12 +53,8 @@ Görsel dil [DESIGN.md](DESIGN.md) rehberinden gelir.
    Mevcut sitenizden alınan fotoğraflar bu listede **önce** önerilir. Uygulama kapatılsa bile bu adıma geri dönülebilir.
 6. **Siteyi oluştur:** Laravel sitesi kurulur ve test edilir. "Siteyi başlat", "Yönetim paneli" ve "Klasörü aç" düğmeleri gelir.
 
-Üretilen siteler `Belgeler\WebAgent\output` klasörüne yazılır. Exe'yi yeniden üretmek için:
-
-```bash
-pip install pyinstaller pywebview
-python build_exe.py        # → dist/WebAgent.exe
-```
+Üretilen siteler Windows'ta `Belgeler\WebAgent\output`, Linux/macOS'ta `~/WebAgent/output` klasörüne yazılır
+(`WEBAGENT_HOME` ile değiştirilebilir). Paketleri yeniden üretmek: [Paketleri derleme](#paketleri-derleme).
 
 Pencere açmadan (test/sunucu) çalıştırmak için `WEBAGENT_HEADLESS=1` ortam değişkenini verin.
 
@@ -118,11 +125,19 @@ Ajanlar ortak bir **kara tahta** (`data/jobs/<id>.json`) üzerinden haberleşir.
 
 ```bash
 pip install -r requirements.txt
-python setup_laravel.py     # bir kez: taşınabilir PHP 8.4 + Composer + Laravel/Filament temel projesi (tools/)
+python setup_laravel.py     # bir kez: PHP (Windows'ta taşınabilir) + Composer + Laravel/Filament temel projesi (tools/)
 python run.py               # http://127.0.0.1:8000
 ```
 
-`setup_laravel.py` yönetici yetkisi istemez; her şeyi `tools/` klasörüne kurar ve indirilen dosyaları SHA-256 ile doğrular.
+Linux/macOS'ta tek komutla da olur — sanal ortamı kurar, bağımlılıkları yükler ve uygulamayı açar:
+
+```bash
+./webagent.sh               # ./webagent.sh build → dist/WebAgent-linux-<mimari>
+```
+
+PHP'nin Linux'ta sistemden gelmesi gerekir (`php-cli` + `sqlite3, curl, mbstring, xml, zip, gd, intl` eklentileri);
+`webagent.sh` eksikse komutu yazar. Windows'ta `setup_laravel.py` yönetici yetkisi istemez; her şeyi `tools/` klasörüne
+kurar ve indirilen dosyaları SHA-256 ile doğrular.
 Eski Python motoruyla üretmek isterseniz `.env` içine `WEBAGENT_STACK=python` yazın.
 
 ### Claude'a bağlanma: iki seçenek
@@ -161,8 +176,8 @@ site.json                         yapı + tema             seed.json            
 tests/Feature/SiteSmokeTest.php   uçtan uca test
 ```
 
-Çalıştırmak için platformdaki **▶ Siteyi Başlat** düğmesini kullanın ya da sitenin klasöründeki `run.bat`'ı açın
-(http://127.0.0.1:8100). Admin e-posta ve şifresi sitenin `.env` dosyasında (`ADMIN_EMAIL`, `ADMIN_PASSWORD`) ve platformun görev sayfasında yazar.
+Çalıştırmak için platformdaki **▶ Siteyi Başlat** düğmesini kullanın ya da sitenin klasöründeki başlatıcıyı açın —
+Windows'ta `run.bat`, Linux/macOS'ta `run.sh` (http://127.0.0.1:8100). Admin e-posta ve şifresi sitenin `.env` dosyasında (`ADMIN_EMAIL`, `ADMIN_PASSWORD`) ve platformun görev sayfasında yazar.
 
 ## Testler (API anahtarı gerekmez)
 
@@ -178,6 +193,8 @@ python site_engine/tests/smoke_test.py   # örnek site üzerinde motor testi
 
 ```
 webagent/        platform: ajanlar, orkestratör, Claude istemcisi, arayüz
+webagent.sh      Linux/macOS: sanal ortam kurar, uygulamayı açar (build → paket üretir)
+.github/workflows/build.yml   Windows ve Linux paketlerini CI'da üretir (etiket atıldığında sürüme ekler)
 laravel_stubs/   her Laravel sitesine kopyalanan ortak dosyalar (kontrolcü, Blade, CSS, seeder, test)
 DESIGN.md        Tasarım Ajanı'nın ve şablonların uyduğu tasarım rehberi
 tools/           taşınabilir PHP, Composer ve Laravel temel projesi (setup_laravel.py kurar)
@@ -185,6 +202,23 @@ site_engine/     eski Python motoru (WEBAGENT_STACK=python)
 output/          üretilen siteler
 data/jobs/       görev durumları (kara tahta)
 ```
+
+## Paketleri derleme
+
+PyInstaller çapraz derleme yapmaz; her paket kendi işletim sisteminde üretilir:
+
+```bash
+pip install pyinstaller pywebview     # pywebview yalnızca kendi penceresi için (Linux'ta GTK/WebKit2 ister)
+python build_exe.py                   # Windows → dist/WebAgent.exe, Linux → dist/WebAgent-linux-<mimari>
+```
+
+`v*` etiketi atıldığında [.github/workflows/build.yml](.github/workflows/build.yml) her iki paketi üretip sürüme
+ekler. Linux paketi `manylinux_2_28` kabında derlenir; böylece glibc 2.28+ olan dağıtımlarda (Ubuntu 20.04+,
+Debian 11+, RHEL/Rocky 8+) çalışır. Kendi makinenizde derlerseniz paket o dağıtımın glibc'sine bağlı olur.
+
+Linux'ta uygulama kendi penceresini açmak için GTK/WebKit2 bağlarını kullanır (`python3-gi`,
+`gir1.2-webkit2-4.1`); bunlar yoksa arayüz varsayılan tarayıcıda açılır. Masaüstü olmayan ortamlarda
+(SSH, sunucu) adresi yazıp sunucu olarak çalışır.
 
 ## Notlar
 

@@ -32,11 +32,18 @@ class QAAgent(Agent):
         """PHPUnit (tests/Feature/SiteSmokeTest.php) çalıştırır, JUnit raporunu okur."""
         report = site_dir / "storage" / "qa-junit.xml"
         report.unlink(missing_ok=True)
-        proc = subprocess.run(
-            [php_bin(), "artisan", "test", "--log-junit", str(report)],
-            cwd=site_dir, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=900,
-            creationflags=0x08000000 if os.name == "nt" else 0,
-        )
+
+        def run(cmd: list[str]) -> subprocess.CompletedProcess:
+            return subprocess.run(
+                cmd, cwd=site_dir, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=900,
+                creationflags=0x08000000 if os.name == "nt" else 0,
+            )
+
+        proc = run([php_bin(), "artisan", "test", "--log-junit", str(report)])
+        if not report.exists() and (site_dir / "vendor" / "bin" / "phpunit").exists():
+            # `artisan test` testleri ayrı bir süreçte çalıştırır; bazı PHP kurulumlarında bu mümkün
+            # olmaz (proc_open kapalı, PHP_BINARY boş). Böyle durumlarda PHPUnit'i doğrudan çalıştır.
+            proc = run([php_bin(), str(site_dir / "vendor" / "bin" / "phpunit"), "--log-junit", str(report)])
         if not report.exists():
             return QAResult(passed=False, errors=[(proc.stdout + proc.stderr)[-3000:] or "Test raporu oluşmadı"])
 

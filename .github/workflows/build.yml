@@ -1,0 +1,76 @@
+name: Paketleri üret
+
+# PyInstaller çapraz derleme yapmaz: her paket kendi işletim sisteminde üretilir.
+# Linux paketi manylinux_2_28 kabında derlenir; böylece glibc 2.28+ olan dağıtımlarda
+# (Ubuntu 20.04+, Debian 11+, RHEL/Rocky 8+, Fedora 34+) çalışır.
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  linux:
+    name: Linux (x86_64)
+    runs-on: ubuntu-latest
+    container: quay.io/pypa/manylinux_2_28_x86_64
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bağımlılıklar
+        run: |
+          /opt/python/cp312-cp312/bin/python -m venv /tmp/venv
+          /tmp/venv/bin/pip install --quiet --upgrade pip
+          /tmp/venv/bin/pip install --quiet -r requirements.txt pyinstaller
+      - name: Derle
+        run: /tmp/venv/bin/python build_exe.py
+      - name: Sürüm bilgisi
+        run: |
+          ls -la dist/
+          sha256sum dist/WebAgent-linux-x86_64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WebAgent-linux-x86_64
+          path: dist/WebAgent-linux-x86_64
+          if-no-files-found: error
+
+  windows:
+    name: Windows (x64)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Bağımlılıklar
+        run: |
+          python -m pip install --quiet --upgrade pip
+          python -m pip install --quiet -r requirements.txt pyinstaller pywebview
+      - name: Derle
+        run: python build_exe.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WebAgent.exe
+          path: dist/WebAgent.exe
+          if-no-files-found: error
+
+  release:
+    name: Sürüme ekle
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [linux, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: paketler
+      - name: Dosyaları sürüme yükle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          find paketler -type f -exec ls -la {} +
+          gh release upload "${GITHUB_REF_NAME}" \
+            "paketler/WebAgent.exe/WebAgent.exe" \
+            "paketler/WebAgent-linux-x86_64/WebAgent-linux-x86_64" \
+            --clobber --repo "${GITHUB_REPOSITORY}"

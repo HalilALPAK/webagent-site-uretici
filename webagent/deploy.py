@@ -22,7 +22,7 @@ import httpx
 
 # Sunucuya gitmeyecek dosyalar (yerel geliştirme kalıntıları)
 SKIP_DIRS = {".git", "node_modules", "__pycache__", "tests"}
-SKIP_FILES = {".env", "run.bat", "qa-junit.xml", ".gitignore"}
+SKIP_FILES = {".env", "run.bat", "run.sh", "qa-junit.xml", ".gitignore"}
 SKIP_SUFFIX = {".log"}
 
 

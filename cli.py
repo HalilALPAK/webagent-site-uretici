@@ -4,6 +4,7 @@
   python cli.py "diş kliniği" --location İstanbul --urls https://rakip1.com https://rakip2.com
 """
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -39,7 +40,8 @@ def main() -> None:
         creds = job.artifacts.get("admin_credentials", {})
         print(f"\nSite hazır: {job.output_dir}")
         if (Path(job.output_dir) / "artisan").exists():
-            print(f"Başlatmak için:  \"{Path(job.output_dir) / 'run.bat'}\"   (ya da platformda ▶ Siteyi Başlat)")
+            launcher = "run.bat" if os.name == "nt" else "run.sh"
+            print(f"Başlatmak için:  \"{Path(job.output_dir) / launcher}\"   (ya da platformda ▶ Siteyi Başlat)")
         else:
             print(f"Başlatmak için:  cd \"{job.output_dir}\" && python -m uvicorn app:app --port 8100")
         print(f"Site: http://127.0.0.1:8100   Admin: http://127.0.0.1:8100/admin  ({creds.get('user')} / {creds.get('password')})")

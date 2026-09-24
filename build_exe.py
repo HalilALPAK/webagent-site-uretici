@@ -1,11 +1,15 @@
-"""WebAgent.exe'yi üretir (PyInstaller, tek dosya).
+"""Tek dosyalık uygulamayı üretir (PyInstaller).
 
 Kullanım:  pip install pyinstaller pywebview
-           python build_exe.py            → dist/WebAgent.exe
-PHP, Composer ve Laravel temel projesi .exe'ye gömülmez (≈150 MB); ilk açılışta kurulum ekranı indirir.
+           python build_exe.py
+           Windows → dist/WebAgent.exe      Linux → dist/WebAgent-linux-<mimari>
+
+PyInstaller çapraz derleme yapmaz: Linux sürümü Linux'ta, Windows sürümü Windows'ta derlenmelidir.
+PHP, Composer ve Laravel temel projesi pakete gömülmez (≈150 MB); ilk açılışta kurulum ekranı indirir.
 """
 from __future__ import annotations
 
+import platform
 import shutil
 import sys
 from pathlib import Path
@@ -13,6 +17,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 BUILD = ROOT / "build"
 SEP = ";" if sys.platform == "win32" else ":"
+WINDOWS = sys.platform == "win32"
+APP_NAME = "WebAgent" if WINDOWS else f"WebAgent-{'macos' if sys.platform == 'darwin' else 'linux'}-{platform.machine()}"
 
 
 def make_icon() -> Path:
@@ -48,12 +54,10 @@ def main() -> None:
     ]
     args = [
         str(ROOT / "desktop.py"),
-        "--name", "WebAgent",
+        "--name", APP_NAME,
         "--onefile",
-        "--noconsole",
         "--noconfirm",
         "--clean",
-        "--icon", str(make_icon()),
         "--distpath", str(ROOT / "dist"),
         "--workpath", str(BUILD / "pyinstaller"),
         "--specpath", str(BUILD),
@@ -69,10 +73,14 @@ def main() -> None:
         "--exclude-module", "numpy",
         "--exclude-module", "IPython",
     ]
+    if WINDOWS:  # konsol penceresi gizlenir, simge gömülür (ikisi de Linux'ta anlamsız)
+        args += ["--noconsole", "--icon", str(make_icon())]
     for src, dest in data:
         args += ["--add-data", f"{ROOT / src}{SEP}{dest}"]
     PyInstaller.__main__.run(args)
-    exe = ROOT / "dist" / ("WebAgent.exe" if sys.platform == "win32" else "WebAgent")
+    exe = ROOT / "dist" / (APP_NAME + (".exe" if WINDOWS else ""))
+    if not WINDOWS:
+        exe.chmod(0o755)
     print(f"\nHazır: {exe}  ({exe.stat().st_size / 1e6:.0f} MB)")
 
 

@@ -115,9 +115,18 @@ def find_claude_cli() -> str | None:
     found = shutil.which("claude")
     if found:
         return found
-    ext_dir = Path.home() / ".vscode" / "extensions"
-    candidates = sorted(ext_dir.glob("anthropic.claude-code-*/resources/native-binary/claude*"), reverse=True)
-    return str(candidates[0]) if candidates else None
+    home = Path.home()
+    # Masaüstünden açılan uygulamada PATH kısıtlı olabilir; bilinen kurulum yerlerine de bak
+    for direct in (home / ".claude" / "local" / "claude", home / ".local" / "bin" / "claude",
+                   Path("/usr/local/bin/claude"), Path("/opt/homebrew/bin/claude")):
+        if direct.exists():
+            return str(direct)
+    for ext_dir in (home / ".vscode" / "extensions", home / ".vscode-server" / "extensions",
+                    home / ".vscode-insiders" / "extensions"):
+        candidates = sorted(ext_dir.glob("anthropic.claude-code-*/resources/native-binary/claude*"), reverse=True)
+        if candidates:
+            return str(candidates[0])
+    return None
 
 
 class _SearchResults(BaseModel):

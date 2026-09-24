@@ -1,6 +1,7 @@
 """Laravel üretimi için gereken araçları kurar (ilk açılışta bir kez).
 
-- Taşınabilir PHP 8.4 (windows.php.net, SHA-256 doğrulamalı) → tools/php
+- Windows'ta taşınabilir PHP 8.4 (windows.php.net, SHA-256 doğrulamalı) → tools/php
+- Linux/macOS'ta sistemdeki PHP kullanılır; yoksa dağıtımınıza uygun kurulum komutu gösterilir
 - Composer (getcomposer.org, SHA-256 doğrulamalı) → tools/composer.phar
 - Laravel 13 + Filament temel projesi → tools/laravel-base (her site bunun kopyasıdır)
 Yönetici yetkisi gerekmez. PHP zaten PATH'teyse o kullanılır.
@@ -18,7 +19,7 @@ from typing import Callable
 
 import httpx
 
-from .config import LARAVEL_BASE, TOOLS_DIR
+from .config import LARAVEL_BASE, TOOLS_DIR, php_bin
 
 PHP_DIR = TOOLS_DIR / "php"
 COMPOSER = TOOLS_DIR / "composer.phar"
@@ -47,16 +48,69 @@ def enable_extensions(ini_path) -> None:
     ini_path.write_text(ini, encoding="utf-8")
 
 
+# Laravel + Filament + üretilen sitelerin çalışması için gereken en küçük küme
+REQUIRED_EXT = ["mbstring", "openssl", "curl", "dom", "xml", "tokenizer", "ctype", "fileinfo",
+                "pdo_sqlite", "sqlite3", "zip", "gd", "intl"]
+MIN_VERSION = (8, 2)
+# apt/dnf/pacman/zypper için eklenti → paket adı kalıpları
+PKG_HINTS = {
+    "apt-get": ("sudo apt install -y", "php-cli php-sqlite3 php-curl php-mbstring php-xml php-zip php-gd php-intl"),
+    "dnf": ("sudo dnf install -y", "php-cli php-pdo php-mbstring php-xml php-gd php-intl php-sodium"),
+    "pacman": ("sudo pacman -S --needed", "php php-gd php-intl php-sqlite"),
+    "zypper": ("sudo zypper install -y", "php8 php8-cli php8-sqlite php8-curl php8-mbstring php8-dom php8-zip php8-gd php8-intl"),
+    "apk": ("sudo apk add", "php php-cli php-pdo_sqlite php-sqlite3 php-curl php-mbstring php-dom php-xml php-tokenizer php-fileinfo php-zip php-gd php-intl"),
+    "brew": ("brew install", "php"),
+}
+
+
+def install_hint() -> str:
+    """Kullanıcının dağıtımına uygun PHP kurulum komutu."""
+    for mgr, (cmd, pkgs) in PKG_HINTS.items():
+        if shutil.which(mgr):
+            return f"{cmd} {pkgs}"
+    return "Dağıtımınızın paket yöneticisiyle PHP 8.2+ kurun (cli, sqlite, curl, mbstring, xml, zip, gd, intl eklentileriyle)."
+
+
+def php_report(php: str) -> tuple[tuple[int, int] | None, list[str]]:
+    """PHP'nin sürümünü ve eksik eklentilerini döndürür."""
+    try:
+        out = subprocess.run([php, "-r", "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION.'|'.implode(',', get_loaded_extensions());"],
+                             capture_output=True, text=True, timeout=30, creationflags=NO_WINDOW).stdout
+        ver_txt, _, ext_txt = out.strip().partition("|")
+        version = tuple(int(x) for x in ver_txt.split(".")[:2])
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return None, list(REQUIRED_EXT)
+    loaded = {e.strip().lower() for e in ext_txt.split(",")}
+    missing = [e for e in REQUIRED_EXT if e not in loaded]
+    return version, missing  # type: ignore[return-value]
+
+
+def system_php_problem(php: str) -> str | None:
+    """Sistemdeki PHP yeterliyse None, değilse kısa açıklama döndürür."""
+    version, missing = php_report(php)
+    if version is None:
+        return "çalıştırılamadı"
+    if version < MIN_VERSION:
+        return f"sürüm {version[0]}.{version[1]}, en az 8.2 gerekiyor"
+    if missing:
+        return "eksik eklentiler: " + ", ".join(missing)
+    return None
+
+
 def install_php(log: Log) -> str:
-    found = shutil.which("php")
-    if found:
-        log(f"PHP bulundu: {found}")
-        return found
-    exe = PHP_DIR / "php.exe"
+    found = php_bin()
+    if found and not str(found).startswith(str(PHP_DIR)):  # sistemde PHP var
+        problem = system_php_problem(found)
+        if not problem:
+            log(f"PHP bulundu: {found}")
+            return found
+        log(f"Sistemdeki PHP kullanılamıyor ({problem}).")
+    exe = PHP_DIR / ("php.exe" if os.name == "nt" else "php")
     if exe.exists():
         return str(exe)
-    if os.name != "nt":
-        raise SetupError("PHP bulunamadı. Paket yöneticinizle PHP 8.3+ kurun (sqlite, intl, zip, gd eklentileriyle).")
+    if os.name != "nt":  # Linux/macOS: PHP paket yöneticisinden kurulur (tek satırlık komut gösterilir)
+        raise SetupError("Uygun bir PHP bulunamadı. Şu komutla kurun:\n  " + install_hint() +
+                         "\nKurduktan sonra 'Tekrar dene' düğmesine basın.")
 
     releases = httpx.get("https://windows.php.net/downloads/releases/releases.json", headers=UA, timeout=60,
                          follow_redirects=True).json()

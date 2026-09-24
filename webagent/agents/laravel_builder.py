@@ -515,15 +515,31 @@ class LaravelBuilderAgent(Agent):
         if proc.returncode != 0:
             raise RuntimeError(f"migrate --seed başarısız:\n{(proc.stdout + proc.stderr)[-2500:]}")
 
-        server = "..\\" + SERVER_SCRIPT.replace("/", "\\")
-        (target / "run.bat").write_text(
-            "@echo off\r\ncd /d %~dp0public\r\n"
-            "echo Site: http://127.0.0.1:8100   Admin: http://127.0.0.1:8100/admin\r\n"
-            f"\"{php_exe}\" -S 127.0.0.1:8100 {server}\r\n",
-            encoding="utf-8")
+        self._write_launcher(target, php_exe)
         self.job.put("admin_credentials", {"user": email, "password": password})
         self.log(f"Laravel projesi hazır: {target}", "ok")
         return target
+
+    @staticmethod
+    def _write_launcher(target: Path, php_exe: str) -> None:
+        """Siteyi elle başlatmak için çift tıklanabilir dosya: Windows'ta run.bat, diğerlerinde run.sh."""
+        info = "Site: http://127.0.0.1:8100   Admin: http://127.0.0.1:8100/admin"
+        if os.name == "nt":
+            server = "..\\" + SERVER_SCRIPT.replace("/", "\\")
+            (target / "run.bat").write_text(
+                "@echo off\r\ncd /d %~dp0public\r\n"
+                f"echo {info}\r\n"
+                f"\"{php_exe}\" -S 127.0.0.1:8100 {server}\r\n",
+                encoding="utf-8")
+            return
+        run_sh = target / "run.sh"
+        run_sh.write_text(
+            '#!/usr/bin/env sh\n'
+            'cd "$(dirname "$0")/public" || exit 1\n'
+            f'echo "{info}"\n'
+            f'exec "{php_exe}" -S 127.0.0.1:8100 "../{SERVER_SCRIPT}"\n',
+            encoding="utf-8", newline="\n")
+        run_sh.chmod(0o755)
 
     # ------------------------------------------------------------ içerik
     def _coerce_seed(self, data: dict, seed: dict[str, list[dict]]) -> dict[str, list[dict]]:
