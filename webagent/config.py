@@ -65,8 +65,9 @@ STACK = os.environ.get("WEBAGENT_STACK", "laravel")
 LARAVEL_BASE = Path(os.environ.get("LARAVEL_BASE", TOOLS_DIR / "laravel-base"))
 
 
-# Linux dağıtımları PHP'yi sürüm ekli adlarla da kurar (php8.3 gibi); yenisini tercih et
-PHP_NAMES = ["php"] if os.name == "nt" else ["php", "php8.4", "php8.3", "php8.2"]
+# Linux dağıtımları PHP'yi sürüm ekli adlarla da kurar (php8.3 gibi). Sistemdeki `php` eski
+# olabileceği için (7.x) önce sürüm ekli yeni adlar denenir.
+PHP_NAMES = ["php"] if os.name == "nt" else ["php8.4", "php8.3", "php8.2", "php"]
 
 
 def php_bin() -> str | None:
