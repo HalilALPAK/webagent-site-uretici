@@ -213,8 +213,8 @@ python build_exe.py                   # Windows → dist/WebAgent.exe, Linux →
 ```
 
 `v*` etiketi atıldığında [.github/workflows/build.yml](.github/workflows/build.yml) her iki paketi üretip sürüme
-ekler. Linux paketi `manylinux_2_28` kabında derlenir; böylece glibc 2.28+ olan dağıtımlarda (Ubuntu 20.04+,
-Debian 11+, RHEL/Rocky 8+) çalışır. Kendi makinenizde derlerseniz paket o dağıtımın glibc'sine bağlı olur.
+ekler. Linux paketi AlmaLinux 8 kabında derlenir; böylece glibc 2.28+ olan dağıtımlarda (Ubuntu 18.04+,
+Debian 10+, Fedora 29+, RHEL/Rocky 8+) çalışır. Kendi makinenizde derlerseniz paket o dağıtımın glibc'sine bağlı olur.
 
 Linux'ta uygulama kendi penceresini açmak için GTK/WebKit2 bağlarını kullanır (`python3-gi`,
 `gir1.2-webkit2-4.1`); bunlar yoksa arayüz varsayılan tarayıcıda açılır. Masaüstü olmayan ortamlarda
