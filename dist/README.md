@@ -14,7 +14,7 @@ Sürüm **1.1** · 24.09.2026 · tek dosya, kurulum gerektirmez.
 
 | Sistem | Dosya | Boyut |
 |---|---|---|
-| **Windows** 10 / 11 (64-bit) | **[⬇ WebAgent.exe](https://github.com/HalilALPAK/webagent-site-uretici/releases/latest/download/WebAgent.exe)** | 38 MB |
+| **Windows** 10 / 11 (64-bit) | **[⬇ WebAgent.exe](https://github.com/HalilALPAK/webagent-site-uretici/releases/latest/download/WebAgent.exe)** | 33 MB |
 | **Linux** x86_64 — Ubuntu 18.04+, Debian 10+, Fedora 29+, Rocky/RHEL 8+ | **[⬇ WebAgent-linux-x86_64](https://github.com/HalilALPAK/webagent-site-uretici/releases/latest/download/WebAgent-linux-x86_64)** | 36 MB |
 
 Tüm sürümler, SHA-256 değerleri ve değişiklik notları:
